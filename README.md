@@ -132,9 +132,9 @@ Requires **gamemaster** permission level (op level 2). Applies immediately — n
 
 ## 📦 Installation
 
-1. Install [Fabric Loader 0.18.1](https://fabricmc.net/use/) for Minecraft 1.21.11.
-2. Download [Fabric API 0.140.2+1.21.11](https://modrinth.com/mod/fabric-api) and place it in `mods/`.
-3. Download `undead-riders-1.0.0.jar` and place it in `mods/`.
+1. Install [Fabric Loader](https://fabricmc.net/use/) for Minecraft.
+2. Download [Fabric API](https://modrinth.com/mod/fabric-api) and place it in `mods/`.
+3. Download `undead-riders-<version>.jar` and place it in `mods/`.
 4. Launch Minecraft. The config is created automatically on first run.
 
 ---
@@ -142,11 +142,11 @@ Requires **gamemaster** permission level (op level 2). Applies immediately — n
 ## 🧱 Building from Source
 
 ```bash
-git clone https://github.com/SwordfishBE
+git clone https://github.com/SwordfishBE/UndeadRiders.git
 cd undead-riders
 gradle wrapper
 ./gradlew build
-# Output: build/libs/undead-riders-1.0.0.jar
+# Output: build/libs/undead-riders-<version>.jar
 ```
 
 ---
