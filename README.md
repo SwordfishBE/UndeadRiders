@@ -143,8 +143,8 @@ Requires **gamemaster** permission level (op level 2). Applies immediately — n
 
 ```bash
 git clone https://github.com/SwordfishBE/UndeadRiders.git
-cd undead-riders
-gradle wrapper
+cd UndeadRiders
+chmod +x gradlew
 ./gradlew build
 # Output: build/libs/undead-riders-<version>.jar
 ```
