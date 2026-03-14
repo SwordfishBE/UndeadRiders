@@ -34,11 +34,11 @@ One option chosen at random.
 
 ### Zombie Horseman — rider weapon
 
-| Difficulty | Option A      | Option B     | Option C      |
-|------------|---------------|--------------|---------------|
-| Easy       | Stone Sword   | Wooden Spear | Wooden Axe    |
-| Normal     | Iron Sword    | Stone Spear  | Iron Axe      |
-| Hard       | Diamond Sword | Iron Spear   | Diamond Spear |
+| Difficulty | Options (1 chosen at random) |
+|------------|-------------------------------|
+| Easy       | Stone Sword, Stone Axe, Stone Spear, Wooden Sword, Wooden Axe, Wooden Spear, Wooden Shovel, Stone Shovel |
+| Normal     | Copper Sword, Copper Axe, Copper Spear, Iron Sword, Iron Axe, Iron Spear, Golden Sword, Golden Axe, Golden Spear, Iron/Copper/Golden Shovel |
+| Hard       | Iron Sword, Iron Axe, Iron Spear, Diamond Sword, Diamond Axe, Diamond Spear, Diamond Shovel |
 
 One option chosen at random. Drop chance: 5%.
 
@@ -127,6 +127,7 @@ Requires **gamemaster** permission level (op level 2). Applies immediately — n
 - **Mappings**: Official Mojang Mappings
 - **Required**: [Fabric API](https://modrinth.com/mod/fabric-api)
 - **Server-side**: Yes — no client mod required
+- **Single player**: Yes — the mod works in single player worlds
 
 ---
 
