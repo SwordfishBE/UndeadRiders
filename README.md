@@ -89,7 +89,7 @@ Generated automatically on first launch at:
 | `boggedHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `strayHorsemanSpawnRate`      | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `spawnCheckIntervalTicks`     | `400`   | Ticks between spawn rounds (20 = 1 s) |
-| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round |
+| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round — raise this to see more horsemen |
 | `minSpawnDistance`            | `24`    | Minimum spawn distance from player (blocks) |
 | `maxSpawnDistance`            | `64`    | Maximum spawn distance from player (blocks) |
 | `nightOnly`                   | `true`  | Night/thunderstorm only (ignored for Parched) |
