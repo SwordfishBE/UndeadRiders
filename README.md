@@ -1,28 +1,34 @@
 # 🧟‍♂️ Undead Riders
 
-**Undead Riders** is a Fabric mod for Minecraft that adds naturally spawning undead horsemen to the overworld surface. Five types in total, each tied to a fitting biome. Fully configurable and difficulty-scaled.
+**Undead Riders** is a Fabric mod for Minecraft that adds naturally spawning undead horsemen to the overworld surface. Six types in total, each tied to a fitting biome. Fully configurable and difficulty-scaled.
 
 ---
 
 ## ✨ Features
 
-- 🐴 **Zombie Horseman** — Zombie riding a Zombie Horse with difficulty-scaled armor and weapon. Spawns in all overworld biomes at night.
-- 💀 **Skeleton Horseman** — Skeleton riding a wild Skeleton Horse. Bow + possible Power enchant on Hard.
-- ☀️ **Parched Horseman** — Parched (desert skeleton variant) on a Skeleton Horse. **Desert biomes only.** Spawns day and night — Parched don't burn in sunlight.
-- 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. **Swamp and Mangrove Swamp only.** Night only.
-- ❄️ **Stray Horseman** — Stray on a Skeleton Horse. **Frozen biomes only** (Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes). Night only.
-- ⚔️ **Weapons** — Zombie riders can carry Wooden, Stone, Iron, or Diamond Weapons.
-- 🛡️ **Difficulty-scaled horse armor** — Zombie Horses wear armor that scales with game difficulty.
-- 🔀 **Independent toggles** — Each horseman type can be enabled/disabled separately.
+- 🐴 **Zombie Horseman** — Zombie on a Zombie Horse. All biomes except Desert. Night only.
+- 🏜️ **Husk Horseman** — Husk on a Zombie Horse. Desert only. Night only.
+- 💀 **Skeleton Horseman** — Skeleton on a Skeleton Horse. All biomes except Desert/Swamp/Frozen. Night only.
+- ☀️ **Parched Horseman** — Parched on a Skeleton Horse. Desert only. Day and night.
+- 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. Swamp and Mangrove Swamp only. Night only.
+- ❄️ **Stray Horseman** — Stray on a Skeleton Horse. Frozen biomes only. Night only.
+- 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield on Hard difficulty.
+- 🏹 **Enchanted bow on Hard** — Skeleton, Parched and Stray riders have a 30% chance for a Power I–III bow on Hard.
+- ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons.
+- 🛡️ **Difficulty-scaled horse armor** — Zombie Horses wear armor scaled to game difficulty.
+- 🎁 **Saddle drop** — All mod-spawned horses have a 10% base chance to drop a saddle on death. Scales with Looting (Looting III ≈ 20%).
+- 🔑 **Tameable Skeleton Horses** — After killing the rider, Skeleton Horses can immediately be saddled and ridden.
+- 🔀 **Independent toggles** — Each type can be enabled/disabled separately.
 - ⚙️ **Fully configurable** — Spawn rates, distances, timing, attempts per player, night-only toggle via JSON config.
-- 🔄 **Live reload** — `/undeadriders reload` applies config changes instantly without a restart.
+- 🔄 **Live reload** — `/undeadriders reload` applies config changes without a restart.
+- 📋 **Info command** — `/undeadriders info` shows the current status of all types and caps in-game.
 - 🚫 **Non-interfering** — Never touches vanilla's spawn system.
 
 ---
 
 ## 📊 Difficulty Scaling
 
-### Zombie Horseman — horse armor
+### Zombie / Husk Horseman — horse armor (no saddle)
 
 | Difficulty | Option A            | Option B           | Option C            |
 |------------|---------------------|--------------------|---------------------|
@@ -32,7 +38,7 @@
 
 One option chosen at random.
 
-### Zombie Horseman — rider weapon
+### Zombie / Husk Horseman — rider weapon
 
 | Difficulty | Options (1 chosen at random) |
 |------------|-------------------------------|
@@ -40,11 +46,11 @@ One option chosen at random.
 | Normal     | Copper Sword, Copper Axe, Copper Spear, Iron Sword, Iron Axe, Iron Spear, Golden Sword, Golden Axe, Golden Spear, Iron/Copper/Golden Shovel |
 | Hard       | Iron Sword, Iron Axe, Iron Spear, Diamond Sword, Diamond Axe, Diamond Spear, Diamond Shovel |
 
-One option chosen at random. Drop chance: 5%.
+Drop chance: 5%. Additionally, on **Hard** there is a **40% chance** the rider also carries a shield (offhand, no drop).
 
-### Skeleton / Parched / Bogged / Stray Horseman
+### Skeleton / Parched / Stray Horseman
 
-Rider equipment handled entirely by vanilla's `finalizeSpawn()` — bow with possible Power enchant on Hard, consistent with their normal spawn behaviour.
+Rider equipment handled by vanilla's `finalizeSpawn()`. On **Hard**, there is a **30% chance** the rider spawns with a **Power I–III enchanted bow** (drop chance 10%).
 
 ---
 
@@ -52,7 +58,8 @@ Rider equipment handled entirely by vanilla's `finalizeSpawn()` — bow with pos
 
 | Type | Biomes |
 |------|--------|
-| Zombie Horseman | All overworld biomes |
+| Zombie Horseman | All overworld biomes **except** Desert |
+| Husk Horseman | Desert |
 | Skeleton Horseman | All overworld biomes **except** Desert, Swamp, Mangrove Swamp, Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes |
 | Parched Horseman | Desert |
 | Bogged Horseman | Swamp, Mangrove Swamp |
@@ -70,17 +77,19 @@ Generated automatically on first launch at:
 | Option                        | Default | Description |
 |-------------------------------|---------|-------------|
 | `zombieHorsemanEnabled`       | `true`  | Enable Zombie Horseman |
+| `huskHorsemanEnabled`         | `true`  | Enable Husk Horseman (desert) |
 | `skeletonHorsemanEnabled`     | `true`  | Enable Skeleton Horseman |
 | `parchedHorsemanEnabled`      | `true`  | Enable Parched Horseman (desert) |
 | `boggedHorsemanEnabled`       | `true`  | Enable Bogged Horseman (swamp) |
 | `strayHorsemanEnabled`        | `true`  | Enable Stray Horseman (frozen biomes) |
 | `zombieHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `huskHorsemanSpawnRate`       | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `skeletonHorsemanSpawnRate`   | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `parchedHorsemanSpawnRate`    | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `boggedHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `strayHorsemanSpawnRate`      | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `spawnCheckIntervalTicks`     | `400`   | Ticks between spawn rounds (20 = 1 s) |
-| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round — raise this to see more horsemen |
+| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round |
 | `minSpawnDistance`            | `24`    | Minimum spawn distance from player (blocks) |
 | `maxSpawnDistance`            | `64`    | Maximum spawn distance from player (blocks) |
 | `nightOnly`                   | `true`  | Night/thunderstorm only (ignored for Parched) |
@@ -92,11 +101,13 @@ Generated automatically on first launch at:
 ```json
 {
   "zombieHorsemanEnabled": true,
+  "huskHorsemanEnabled": true,
   "skeletonHorsemanEnabled": true,
   "parchedHorsemanEnabled": true,
   "boggedHorsemanEnabled": true,
   "strayHorsemanEnabled": true,
   "zombieHorsemanSpawnRate": 0.15,
+  "huskHorsemanSpawnRate": 0.15,
   "skeletonHorsemanSpawnRate": 0.15,
   "parchedHorsemanSpawnRate": 0.15,
   "boggedHorsemanSpawnRate": 0.15,
@@ -112,12 +123,14 @@ Generated automatically on first launch at:
 
 ---
 
-## 🔄 In-game Reload
+## 🔄 Commands
 
-```
-/undeadriders reload
-```
-Requires **gamemaster** permission level (op level 2). Applies immediately — no restart needed.
+Both commands require **gamemaster** permission (op level 2).
+
+| Command | Description |
+|---------|-------------|
+| `/undeadriders reload` | Reloads the config from disk without a server restart |
+| `/undeadriders info` | Shows enabled/disabled status, spawn rates, and current caps in chat |
 
 ---
 
