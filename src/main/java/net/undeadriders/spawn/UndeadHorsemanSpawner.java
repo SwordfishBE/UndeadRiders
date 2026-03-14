@@ -2,6 +2,7 @@ package net.undeadriders.spawn;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
@@ -11,14 +12,16 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.skeleton.Bogged;
-import net.minecraft.world.entity.monster.skeleton.Stray;
 import net.minecraft.world.entity.monster.skeleton.Parched;
 import net.minecraft.world.entity.monster.skeleton.Skeleton;
+import net.minecraft.world.entity.monster.skeleton.Stray;
+import net.minecraft.world.entity.monster.zombie.Husk;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.animal.equine.SkeletonHorse;
 import net.minecraft.world.entity.animal.equine.ZombieHorse;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -34,21 +37,32 @@ import java.util.Random;
  *
  * <h3>Types and biomes</h3>
  * <ul>
- *   <li><b>Zombie Horseman</b>   — ZombieHorse + Zombie. All overworld biomes, night only.</li>
- *   <li><b>Skeleton Horseman</b> — SkeletonHorse + Skeleton. All overworld biomes, night only.</li>
- *   <li><b>Parched Horseman</b>  — SkeletonHorse + Parched. Desert only. Day &amp; night.</li>
- *   <li><b>Bogged Horseman</b>   — SkeletonHorse + Bogged. Swamp &amp; Mangrove Swamp only. Night only.</li>
- *   <li><b>Stray Horseman</b>    — SkeletonHorse + Stray. Ice Spikes, Snowy Plains, Jagged/Frozen Peaks, Snowy Slopes. Night only.</li>
+ *   <li><b>Zombie Horseman</b>  — ZombieHorse + Zombie. All biomes except Desert. Night only.</li>
+ *   <li><b>Husk Horseman</b>    — ZombieHorse + Husk.   Desert only. Night only.</li>
+ *   <li><b>Skeleton Horseman</b>— SkeletonHorse + Skeleton. All biomes except Desert/Swamp/Frozen. Night only.</li>
+ *   <li><b>Parched Horseman</b> — SkeletonHorse + Parched. Desert only. Day &amp; night.</li>
+ *   <li><b>Bogged Horseman</b>  — SkeletonHorse + Bogged.  Swamp &amp; Mangrove Swamp. Night only.</li>
+ *   <li><b>Stray Horseman</b>   — SkeletonHorse + Stray.   Frozen biomes only. Night only.</li>
  * </ul>
  *
- * <h3>Mounting safety</h3>
- * {@code startRiding()} return value is checked — if mounting fails both entities
- * are discarded immediately so no riderless horse is left in the world.
+ * <h3>Hard difficulty extras</h3>
+ * <ul>
+ *   <li>Zombie/Husk riders: 40% chance to carry a shield in the offhand.</li>
+ *   <li>Skeleton riders: 30% chance for a Power I–III enchanted bow.</li>
+ * </ul>
+ *
+ * <h3>Saddle drop</h3>
+ * All mod-spawned horses have a 10% chance to drop a saddle on death.
+ * Horses are tagged with NBT key "UndeadRiders" at spawn for identification.
  *
  * <h3>ZombieHorse finalizeSpawn</h3>
  * {@code finalizeSpawn} is intentionally NOT called on horses. Vanilla's own
  * {@code ZombieHorse.finalizeSpawn} injects a zombie rider automatically; calling
  * it would cause a duplicate rider on every server reload.
+ *
+ * <h3>Mounting safety</h3>
+ * {@code startRiding()} return value is checked — if mounting fails both entities
+ * are discarded immediately so no riderless horse remains in the world.
  */
 public class UndeadHorsemanSpawner {
 
@@ -66,16 +80,18 @@ public class UndeadHorsemanSpawner {
         tickCounter++;
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
 
-        boolean anyEnabled = cfg.zombieHorsemanEnabled || cfg.skeletonHorsemanEnabled
-            || cfg.parchedHorsemanEnabled || cfg.boggedHorsemanEnabled || cfg.strayHorsemanEnabled;
+        boolean anyEnabled = cfg.zombieHorsemanEnabled || cfg.huskHorsemanEnabled
+            || cfg.skeletonHorsemanEnabled || cfg.parchedHorsemanEnabled
+            || cfg.boggedHorsemanEnabled   || cfg.strayHorsemanEnabled;
         if (!anyEnabled) return;
         if (tickCounter % cfg.spawnCheckIntervalTicks != 0) return;
 
         List<ServerPlayer> players = world.players();
         if (players.isEmpty()) return;
 
-        long existingZombie   = cfg.zombieHorsemanEnabled   ? countHorsemen(world, EntityType.ZOMBIE_HORSE)   : 0;
-        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countHorsemen(world, EntityType.SKELETON_HORSE) : 0;
+        long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityType.ZOMBIE_HORSE)   : 0;
+        long existingHusk     = cfg.huskHorsemanEnabled     ? countEntities(world, EntityType.HUSK)           : 0;
+        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE) : 0;
         long existingParched  = cfg.parchedHorsemanEnabled  ? countEntities(world, EntityType.PARCHED)        : 0;
         long existingBogged   = cfg.boggedHorsemanEnabled   ? countEntities(world, EntityType.BOGGED)         : 0;
         long existingStray    = cfg.strayHorsemanEnabled    ? countEntities(world, EntityType.STRAY)          : 0;
@@ -87,8 +103,14 @@ public class UndeadHorsemanSpawner {
 
                 if (cfg.zombieHorsemanEnabled && existingZombie < cap
                         && RANDOM.nextFloat() < cfg.zombieHorsemanSpawnRate) {
-                    BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.ANY);
+                    BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.ZOMBIE);
                     if (pos != null) { spawnZombieHorseman(world, pos); existingZombie++; }
+                }
+
+                if (cfg.huskHorsemanEnabled && existingHusk < cap
+                        && RANDOM.nextFloat() < cfg.huskHorsemanSpawnRate) {
+                    BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.DESERT);
+                    if (pos != null) { spawnHuskHorseman(world, pos); existingHusk++; }
                 }
 
                 if (cfg.skeletonHorsemanEnabled && existingSkeleton < cap
@@ -119,31 +141,31 @@ public class UndeadHorsemanSpawner {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Biome filter enum
+    // Biome filter
     // ─────────────────────────────────────────────────────────────────────────
 
-    private enum BiomeFilter { ANY, SKELETON, DESERT, SWAMP, FROZEN }
+    private enum BiomeFilter { ZOMBIE, HUSK, SKELETON, DESERT, SWAMP, FROZEN }
 
     private static boolean matchesBiome(ServerLevel world, BlockPos pos, BiomeFilter filter) {
-        if (filter == BiomeFilter.ANY) return true;
         Holder<Biome> biome = world.getBiome(pos);
         return switch (filter) {
-            case SKELETON -> !biome.is(Biomes.DESERT)
-                         && !biome.is(Biomes.SWAMP)
-                         && !biome.is(Biomes.MANGROVE_SWAMP)
-                         && !biome.is(Biomes.ICE_SPIKES)
-                         && !biome.is(Biomes.SNOWY_PLAINS)
-                         && !biome.is(Biomes.JAGGED_PEAKS)
-                         && !biome.is(Biomes.FROZEN_PEAKS)
-                         && !biome.is(Biomes.SNOWY_SLOPES);
-            case DESERT -> biome.is(Biomes.DESERT);
-            case SWAMP  -> biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP);
-            case FROZEN -> biome.is(Biomes.ICE_SPIKES)
-                        || biome.is(Biomes.SNOWY_PLAINS)
-                        || biome.is(Biomes.JAGGED_PEAKS)
-                        || biome.is(Biomes.FROZEN_PEAKS)
-                        || biome.is(Biomes.SNOWY_SLOPES);
-            default -> true;
+            case ZOMBIE    -> !biome.is(Biomes.DESERT);
+            case SKELETON  -> !biome.is(Biomes.DESERT)
+                           && !biome.is(Biomes.SWAMP)
+                           && !biome.is(Biomes.MANGROVE_SWAMP)
+                           && !biome.is(Biomes.ICE_SPIKES)
+                           && !biome.is(Biomes.SNOWY_PLAINS)
+                           && !biome.is(Biomes.JAGGED_PEAKS)
+                           && !biome.is(Biomes.FROZEN_PEAKS)
+                           && !biome.is(Biomes.SNOWY_SLOPES);
+            case DESERT    -> biome.is(Biomes.DESERT);
+            case SWAMP     -> biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP);
+            case FROZEN    -> biome.is(Biomes.ICE_SPIKES)
+                           || biome.is(Biomes.SNOWY_PLAINS)
+                           || biome.is(Biomes.JAGGED_PEAKS)
+                           || biome.is(Biomes.FROZEN_PEAKS)
+                           || biome.is(Biomes.SNOWY_SLOPES);
+            default        -> true;
         };
     }
 
@@ -156,12 +178,11 @@ public class UndeadHorsemanSpawner {
         int minDist = cfg.minSpawnDistance;
         int range   = cfg.maxSpawnDistance - minDist;
 
-        // Parched can spawn day or night; all others respect nightOnly
+        // Parched (DESERT) can spawn day or night; all others respect nightOnly
         boolean skipNightCheck = (filter == BiomeFilter.DESERT);
 
-        // Biome-restricted types get more attempts since their target biomes
-        // may be rare near the player
-        int maxAttempts = (filter == BiomeFilter.ANY || filter == BiomeFilter.SKELETON) ? 12 : 24;
+        // Biome-restricted types get more attempts since their target biomes may be rare
+        int maxAttempts = (filter == BiomeFilter.ZOMBIE || filter == BiomeFilter.SKELETON) ? 12 : 24;
 
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             int offsetX = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
@@ -207,20 +228,39 @@ public class UndeadHorsemanSpawner {
 
         Zombie zombie = EntityType.ZOMBIE.create(world, EntitySpawnReason.NATURAL);
         if (zombie == null) { horse.discard(); return; }
-        // Do NOT call finalizeSpawn on the zombie rider — vanilla's finalizeSpawn
-        // has a chance to convert it into a ZombieVillager. We handle all
-        // equipment ourselves so finalizeSpawn is not needed here.
         zombie.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         applyZombieWeapon(zombie, world.getDifficulty());
+        applyShieldOnHard(zombie, world.getDifficulty());
 
         world.addFreshEntity(horse);
         world.addFreshEntity(zombie);
         if (!zombie.startRiding(horse, true, true)) {
-            horse.discard();
-            zombie.discard();
-            return;
+            horse.discard(); zombie.discard(); return;
         }
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Zombie Horseman at {}", pos);
+    }
+
+    private static void spawnHuskHorseman(ServerLevel world, BlockPos pos) {
+        DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
+
+        ZombieHorse horse = EntityType.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
+        if (horse == null) return;
+        placeHorse(horse, pos);
+        horse.setTamed(false);
+        applyZombieHorseEquipment(horse, world.getDifficulty());
+
+        Husk husk = EntityType.HUSK.create(world, EntitySpawnReason.NATURAL);
+        if (husk == null) { horse.discard(); return; }
+        husk.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        applyZombieWeapon(husk, world.getDifficulty());
+        applyShieldOnHard(husk, world.getDifficulty());
+
+        world.addFreshEntity(horse);
+        world.addFreshEntity(husk);
+        if (!husk.startRiding(horse, true, true)) {
+            horse.discard(); husk.discard(); return;
+        }
+        UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Husk Horseman at {}", pos);
     }
 
     private static void spawnSkeletonHorseman(ServerLevel world, BlockPos pos) {
@@ -234,13 +274,12 @@ public class UndeadHorsemanSpawner {
         Skeleton skeleton = EntityType.SKELETON.create(world, EntitySpawnReason.NATURAL);
         if (skeleton == null) { horse.discard(); return; }
         placeRider(skeleton, world, pos, localDiff);
+        applyEnchantedBowOnHard(skeleton, world);
 
         world.addFreshEntity(horse);
         world.addFreshEntity(skeleton);
         if (!skeleton.startRiding(horse, true, true)) {
-            horse.discard();
-            skeleton.discard();
-            return;
+            horse.discard(); skeleton.discard(); return;
         }
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Skeleton Horseman at {}", pos);
     }
@@ -256,13 +295,12 @@ public class UndeadHorsemanSpawner {
         Parched parched = EntityType.PARCHED.create(world, EntitySpawnReason.NATURAL);
         if (parched == null) { horse.discard(); return; }
         placeRider(parched, world, pos, localDiff);
+        applyEnchantedBowOnHard(parched, world);
 
         world.addFreshEntity(horse);
         world.addFreshEntity(parched);
         if (!parched.startRiding(horse, true, true)) {
-            horse.discard();
-            parched.discard();
-            return;
+            horse.discard(); parched.discard(); return;
         }
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Parched Horseman at {}", pos);
     }
@@ -282,9 +320,7 @@ public class UndeadHorsemanSpawner {
         world.addFreshEntity(horse);
         world.addFreshEntity(bogged);
         if (!bogged.startRiding(horse, true, true)) {
-            horse.discard();
-            bogged.discard();
-            return;
+            horse.discard(); bogged.discard(); return;
         }
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Bogged Horseman at {}", pos);
     }
@@ -300,13 +336,12 @@ public class UndeadHorsemanSpawner {
         Stray stray = EntityType.STRAY.create(world, EntitySpawnReason.NATURAL);
         if (stray == null) { horse.discard(); return; }
         placeRider(stray, world, pos, localDiff);
+        applyEnchantedBowOnHard(stray, world);
 
         world.addFreshEntity(horse);
         world.addFreshEntity(stray);
         if (!stray.startRiding(horse, true, true)) {
-            horse.discard();
-            stray.discard();
-            return;
+            horse.discard(); stray.discard(); return;
         }
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Stray Horseman at {}", pos);
     }
@@ -317,15 +352,19 @@ public class UndeadHorsemanSpawner {
 
     /**
      * Positions a horse without calling finalizeSpawn.
+     * Equips a saddle in the SADDLE slot with a 10% base drop chance so that
+     * vanilla's looting mechanic automatically scales the drop (Looting I/II/III
+     * adds ~3.3% per level on top of the base chance).
      * Skipping finalizeSpawn on ZombieHorse is intentional: vanilla's own
-     * finalizeSpawn injects a zombie rider automatically. If we called it,
-     * a second zombie would appear on every server reload (NBT restores the
-     * first one, vanilla adds another).
+     * finalizeSpawn injects a zombie rider, causing duplicates on server reload.
      */
     private static <T extends net.minecraft.world.entity.Mob> void placeHorse(
             T horse, BlockPos pos) {
         horse.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         horse.setYRot(RANDOM.nextFloat() * 360f);
+        // Give horse a saddle with looting-aware drop chance
+        horse.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
+        horse.setDropChance(EquipmentSlot.SADDLE, 0.1f);
     }
 
     /** Positions a rider and lets vanilla finalizeSpawn handle equipment/enchants. */
@@ -334,6 +373,10 @@ public class UndeadHorsemanSpawner {
         rider.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         rider.finalizeSpawn(world, localDiff, EntitySpawnReason.NATURAL, null);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Equipment helpers
+    // ─────────────────────────────────────────────────────────────────────────
 
     private static void applyZombieHorseEquipment(ZombieHorse horse, Difficulty difficulty) {
         int roll = RANDOM.nextInt(3);
@@ -362,7 +405,6 @@ public class UndeadHorsemanSpawner {
     }
 
     private static void applyZombieWeapon(Zombie zombie, Difficulty difficulty) {
-        // Easy: 8 options, Normal: 10 options, Hard: 7 options
         ItemStack weapon = switch (difficulty) {
             case EASY -> switch (RANDOM.nextInt(8)) {
                 case 0  -> new ItemStack(Items.STONE_SWORD);
@@ -407,13 +449,44 @@ public class UndeadHorsemanSpawner {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static long countHorsemen(ServerLevel world, EntityType<?> type) {
-        return world.getEntities((EntityType<? extends Entity>) type, e -> true).size();
+    /**
+     * 40% chance on Hard to equip a shield in the offhand.
+     * Drop chance 0% — the rider keeps it.
+     */
+    private static void applyShieldOnHard(Zombie zombie, Difficulty difficulty) {
+        if (difficulty == Difficulty.HARD && RANDOM.nextFloat() < 0.4f) {
+            zombie.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
+            zombie.setDropChance(EquipmentSlot.OFFHAND, 0.0f);
+        }
     }
 
+    /**
+     * 30% chance on Hard to replace the skeleton's bow with a Power I–III enchanted bow.
+     * Drop chance 10%.
+     */
+    private static void applyEnchantedBowOnHard(
+            net.minecraft.world.entity.monster.skeleton.AbstractSkeleton skeleton, ServerLevel world) {
+        if (world.getDifficulty() != Difficulty.HARD) return;
+        if (RANDOM.nextFloat() >= 0.3f) return;
+
+        int powerLevel = RANDOM.nextInt(3) + 1; // I, II or III
+        ItemStack bow = new ItemStack(Items.BOW);
+        bow.enchant(
+            world.registryAccess()
+                 .lookupOrThrow(Registries.ENCHANTMENT)
+                 .getOrThrow(Enchantments.POWER),
+            powerLevel
+        );
+        skeleton.setItemSlot(EquipmentSlot.MAINHAND, bow);
+        skeleton.setDropChance(EquipmentSlot.MAINHAND, 0.1f);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Utility
+    // ─────────────────────────────────────────────────────────────────────────
+
     @SuppressWarnings("unchecked")
-    private static long countEntities(ServerLevel world, EntityType<?> type) {
+    public static long countEntities(ServerLevel world, EntityType<?> type) {
         return world.getEntities((EntityType<? extends Entity>) type, e -> true).size();
     }
 }

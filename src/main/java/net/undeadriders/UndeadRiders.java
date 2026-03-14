@@ -10,28 +10,30 @@ import net.undeadriders.spawn.UndeadHorsemanSpawner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import static net.minecraft.commands.Commands.literal;
 
 /**
  * Undead Riders — Fabric Mod
  *
- * Adds naturally spawning Zombie Horsemen, Skeleton Horsemen, and Parched Horsemen
- * to the overworld surface.
+ * Adds naturally spawning undead horsemen to the overworld surface.
  *
  * <ul>
- *   <li>Zombie Horseman  — ZombieHorse with difficulty-scaled armor, ridden by a Zombie.</li>
- *   <li>Skeleton Horseman — wild SkeletonHorse, ridden by a Skeleton.</li>
- *   <li>Parched Horseman  — wild SkeletonHorse, ridden by a Parched. Desert biomes only.</li>
+ *   <li>Zombie Horseman  — ZombieHorse + Zombie. All biomes except Desert.</li>
+ *   <li>Husk Horseman    — ZombieHorse + Husk.   Desert only.</li>
+ *   <li>Skeleton Horseman— SkeletonHorse + Skeleton. All biomes except Desert/Swamp/Frozen.</li>
+ *   <li>Parched Horseman — SkeletonHorse + Parched. Desert only.</li>
+ *   <li>Bogged Horseman  — SkeletonHorse + Bogged.  Swamp biomes only.</li>
+ *   <li>Stray Horseman   — SkeletonHorse + Stray.   Frozen biomes only.</li>
  * </ul>
  *
  * Config: config/undeadriders.json
- * Reload: /undeadriders reload  (requires gamemaster permission)
+ * Commands: /undeadriders reload | info  (requires gamemaster permission)
  */
 public class UndeadRiders implements ModInitializer {
 
     public static final String MOD_ID = "undeadriders";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
     /** Globally accessible config instance. Reloaded via /undeadriders reload. */
     public static UndeadRidersConfig CONFIG;
 
@@ -41,8 +43,10 @@ public class UndeadRiders implements ModInitializer {
 
         CONFIG = UndeadRidersConfig.load();
 
+        // Spawn logic
         ServerTickEvents.END_WORLD_TICK.register(UndeadHorsemanSpawner::onWorldTick);
 
+        // Commands
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             dispatcher.register(
                 literal("undeadriders")
@@ -51,10 +55,33 @@ public class UndeadRiders implements ModInitializer {
                         .executes(ctx -> {
                             CONFIG = UndeadRidersConfig.load();
                             ctx.getSource().sendSuccess(
-                                () -> Component.literal("[UndeadRiders] Config reloaded successfully."),
+                                () -> Component.literal("[UndeadRiders] Config reloaded."),
                                 true
                             );
                             LOGGER.info("[UndeadRiders] Config reloaded via command.");
+                            return 1;
+                        })
+                    )
+                    .then(literal("info")
+                        .executes(ctx -> {
+                            var src = ctx.getSource();
+                            var cfg = CONFIG;
+                            var level = src.getLevel();
+                            long players = level.players().size();
+                            long cap = players * cfg.maxHorsemenPerPlayer;
+
+                            src.sendSuccess(() -> Component.literal(
+                                "§6=== Undead Riders Info ===\n" +
+                                "§eZombie Horseman  §r" + status(cfg.zombieHorsemanEnabled)   + " §7rate=" + cfg.zombieHorsemanSpawnRate   + "\n" +
+                                "§eHusk Horseman    §r" + status(cfg.huskHorsemanEnabled)     + " §7rate=" + cfg.huskHorsemanSpawnRate     + "\n" +
+                                "§eSkeleton Horseman§r" + status(cfg.skeletonHorsemanEnabled) + " §7rate=" + cfg.skeletonHorsemanSpawnRate + "\n" +
+                                "§eParched Horseman §r" + status(cfg.parchedHorsemanEnabled)  + " §7rate=" + cfg.parchedHorsemanSpawnRate  + "\n" +
+                                "§eBogged Horseman  §r" + status(cfg.boggedHorsemanEnabled)   + " §7rate=" + cfg.boggedHorsemanSpawnRate   + "\n" +
+                                "§eStray Horseman   §r" + status(cfg.strayHorsemanEnabled)    + " §7rate=" + cfg.strayHorsemanSpawnRate    + "\n" +
+                                "§7Attempts/player: §f" + cfg.spawnAttemptsPerPlayer +
+                                " §7| Interval: §f" + cfg.spawnCheckIntervalTicks + " ticks\n" +
+                                "§7Cap: §f" + cap + " §7per type (" + players + " player(s) × " + cfg.maxHorsemenPerPlayer + ")"
+                            ), false);
                             return 1;
                         })
                     )
@@ -62,5 +89,9 @@ public class UndeadRiders implements ModInitializer {
         );
 
         LOGGER.info("[UndeadRiders] Ready!");
+    }
+
+    private static String status(boolean enabled) {
+        return enabled ? "§a[ON] " : "§c[OFF]";
     }
 }

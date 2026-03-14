@@ -18,6 +18,7 @@ public class UndeadRidersConfig {
 
     // ── Toggles ───────────────────────────────────────────────────────────────
     public boolean zombieHorsemanEnabled   = true;
+    public boolean huskHorsemanEnabled     = true;
     public boolean skeletonHorsemanEnabled = true;
     /** Desert biomes only. */
     public boolean parchedHorsemanEnabled  = true;
@@ -28,6 +29,7 @@ public class UndeadRidersConfig {
 
     // ── Spawn rates (0.0 – 1.0) ───────────────────────────────────────────────
     public float zombieHorsemanSpawnRate   = 0.15f;
+    public float huskHorsemanSpawnRate     = 0.15f;
     public float skeletonHorsemanSpawnRate = 0.15f;
     public float parchedHorsemanSpawnRate  = 0.15f;
     public float boggedHorsemanSpawnRate   = 0.15f;
@@ -36,7 +38,7 @@ public class UndeadRidersConfig {
     // ── Spawn timing ──────────────────────────────────────────────────────────
     /** How often (ticks) a spawn round is triggered. Default: 400 (20 seconds). */
     public int spawnCheckIntervalTicks = 400;
-    /** Spawn attempts per player per round. Higher = more frequent spawns. Default: 3 */
+    /** Spawn attempts per player per round. Higher = more frequent spawns. Default: 6 */
     public int spawnAttemptsPerPlayer  = 6;
 
     // ── Spawn distance ────────────────────────────────────────────────────────
@@ -45,7 +47,7 @@ public class UndeadRidersConfig {
 
     // ── Conditions ────────────────────────────────────────────────────────────
     /**
-     * Zombie/Skeleton/Bogged/Stray horsemen only spawn at night or during thunderstorms.
+     * Zombie/Husk/Skeleton/Bogged/Stray horsemen only spawn at night or during thunderstorms.
      * Parched horsemen ignore this and can spawn both day and night.
      * Default: true
      */
@@ -66,7 +68,7 @@ public class UndeadRidersConfig {
                 UndeadRidersConfig config = GSON.fromJson(reader, UndeadRidersConfig.class);
                 if (config != null) {
                     config.validate();
-                    config.save(); // picks up new fields added in newer versions
+                    config.save();
                     return config;
                 }
             } catch (IOException e) {
@@ -94,6 +96,7 @@ public class UndeadRidersConfig {
 
     private void validate() {
         zombieHorsemanSpawnRate   = clamp(zombieHorsemanSpawnRate,   0f, 1f);
+        huskHorsemanSpawnRate     = clamp(huskHorsemanSpawnRate,     0f, 1f);
         skeletonHorsemanSpawnRate = clamp(skeletonHorsemanSpawnRate, 0f, 1f);
         parchedHorsemanSpawnRate  = clamp(parchedHorsemanSpawnRate,  0f, 1f);
         boggedHorsemanSpawnRate   = clamp(boggedHorsemanSpawnRate,   0f, 1f);
