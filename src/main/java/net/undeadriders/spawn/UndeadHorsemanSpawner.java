@@ -52,8 +52,8 @@ import java.util.Random;
  * </ul>
  *
  * <h3>Saddle drop</h3>
- * All mod-spawned horses have a 10% chance to drop a saddle on death.
- * Horses are tagged with NBT key "UndeadRiders" at spawn for identification.
+ * All mod-spawned horses carry a saddle in EquipmentSlot.SADDLE with a 10% base drop
+ * chance. Vanilla's looting mechanic scales this automatically (~3.3% per level).
  *
  * <h3>ZombieHorse finalizeSpawn</h3>
  * {@code finalizeSpawn} is intentionally NOT called on horses. Vanilla's own
@@ -89,12 +89,14 @@ public class UndeadHorsemanSpawner {
         List<ServerPlayer> players = world.players();
         if (players.isEmpty()) return;
 
-        long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityType.ZOMBIE_HORSE)   : 0;
-        long existingHusk     = cfg.huskHorsemanEnabled     ? countEntities(world, EntityType.HUSK)           : 0;
-        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE) : 0;
-        long existingParched  = cfg.parchedHorsemanEnabled  ? countEntities(world, EntityType.PARCHED)        : 0;
-        long existingBogged   = cfg.boggedHorsemanEnabled   ? countEntities(world, EntityType.BOGGED)         : 0;
-        long existingStray    = cfg.strayHorsemanEnabled    ? countEntities(world, EntityType.STRAY)          : 0;
+        // For horse types: count all (ZombieHorse/SkeletonHorse don't spawn naturally in bulk)
+        // For rider types that also spawn naturally (Husk/Parched/Bogged/Stray): only count mounted ones
+        long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityType.ZOMBIE_HORSE)                  : 0;
+        long existingHusk     = cfg.huskHorsemanEnabled     ? countMounted(world, EntityType.HUSK)                           : 0;
+        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE)                : 0;
+        long existingParched  = cfg.parchedHorsemanEnabled  ? countMounted(world, EntityType.PARCHED)                        : 0;
+        long existingBogged   = cfg.boggedHorsemanEnabled   ? countMounted(world, EntityType.BOGGED)                         : 0;
+        long existingStray    = cfg.strayHorsemanEnabled    ? countMounted(world, EntityType.STRAY)                          : 0;
 
         long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
 
@@ -109,7 +111,7 @@ public class UndeadHorsemanSpawner {
 
                 if (cfg.huskHorsemanEnabled && existingHusk < cap
                         && RANDOM.nextFloat() < cfg.huskHorsemanSpawnRate) {
-                    BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.DESERT);
+                    BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.HUSK);
                     if (pos != null) { spawnHuskHorseman(world, pos); existingHusk++; }
                 }
 
@@ -144,7 +146,7 @@ public class UndeadHorsemanSpawner {
     // Biome filter
     // ─────────────────────────────────────────────────────────────────────────
 
-    private enum BiomeFilter { ZOMBIE, HUSK, SKELETON, DESERT, SWAMP, FROZEN }
+    private enum BiomeFilter { ZOMBIE, SKELETON, DESERT, HUSK, SWAMP, FROZEN }
 
     private static boolean matchesBiome(ServerLevel world, BlockPos pos, BiomeFilter filter) {
         Holder<Biome> biome = world.getBiome(pos);
@@ -158,7 +160,8 @@ public class UndeadHorsemanSpawner {
                            && !biome.is(Biomes.JAGGED_PEAKS)
                            && !biome.is(Biomes.FROZEN_PEAKS)
                            && !biome.is(Biomes.SNOWY_SLOPES);
-            case DESERT    -> biome.is(Biomes.DESERT);
+            case DESERT    -> biome.is(Biomes.DESERT); // Parched: day & night
+            case HUSK      -> biome.is(Biomes.DESERT);      // Husk: night only
             case SWAMP     -> biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP);
             case FROZEN    -> biome.is(Biomes.ICE_SPIKES)
                            || biome.is(Biomes.SNOWY_PLAINS)
@@ -178,7 +181,7 @@ public class UndeadHorsemanSpawner {
         int minDist = cfg.minSpawnDistance;
         int range   = cfg.maxSpawnDistance - minDist;
 
-        // Parched (DESERT) can spawn day or night; all others respect nightOnly
+        // Only Parched (BiomeFilter.DESERT) can spawn day or night; Husk uses BiomeFilter.HUSK and respects nightOnly
         boolean skipNightCheck = (filter == BiomeFilter.DESERT);
 
         // Biome-restricted types get more attempts since their target biomes may be rare
@@ -218,8 +221,6 @@ public class UndeadHorsemanSpawner {
     // ─────────────────────────────────────────────────────────────────────────
 
     private static void spawnZombieHorseman(ServerLevel world, BlockPos pos) {
-        DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
-
         ZombieHorse horse = EntityType.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos);
@@ -241,8 +242,6 @@ public class UndeadHorsemanSpawner {
     }
 
     private static void spawnHuskHorseman(ServerLevel world, BlockPos pos) {
-        DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
-
         ZombieHorse horse = EntityType.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos);
@@ -488,5 +487,11 @@ public class UndeadHorsemanSpawner {
     @SuppressWarnings("unchecked")
     public static long countEntities(ServerLevel world, EntityType<?> type) {
         return world.getEntities((EntityType<? extends Entity>) type, e -> true).size();
+    }
+
+    /** Counts only entities of the given type that are currently riding a vehicle (i.e. mounted). */
+    @SuppressWarnings("unchecked")
+    private static long countMounted(ServerLevel world, EntityType<?> type) {
+        return world.getEntities((EntityType<? extends Entity>) type, e -> e.isPassenger()).size();
     }
 }
