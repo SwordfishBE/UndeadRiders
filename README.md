@@ -28,7 +28,7 @@
 
 ## 📊 Difficulty Scaling
 
-### Zombie / Husk Horseman — horse armor (no saddle)
+### Zombie / Husk Horseman — horse armor
 
 | Difficulty | Option A            | Option B           | Option C            |
 |------------|---------------------|--------------------|---------------------|
