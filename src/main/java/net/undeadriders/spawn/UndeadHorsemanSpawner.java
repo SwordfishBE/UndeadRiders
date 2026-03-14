@@ -362,22 +362,42 @@ public class UndeadHorsemanSpawner {
     }
 
     private static void applyZombieWeapon(Zombie zombie, Difficulty difficulty) {
-        int roll = RANDOM.nextInt(3);
+        // Easy: 8 options, Normal: 10 options, Hard: 7 options
         ItemStack weapon = switch (difficulty) {
-            case EASY   -> switch (roll) {
+            case EASY -> switch (RANDOM.nextInt(8)) {
                 case 0  -> new ItemStack(Items.STONE_SWORD);
-                case 1  -> new ItemStack(Items.WOODEN_SPEAR);
-                default -> new ItemStack(Items.WOODEN_AXE);
+                case 1  -> new ItemStack(Items.STONE_AXE);
+                case 2  -> new ItemStack(Items.STONE_SPEAR);
+                case 3  -> new ItemStack(Items.WOODEN_SWORD);
+                case 4  -> new ItemStack(Items.WOODEN_AXE);
+                case 5  -> new ItemStack(Items.WOODEN_SPEAR);
+                case 6  -> new ItemStack(Items.WOODEN_SHOVEL);
+                default -> new ItemStack(Items.STONE_SHOVEL);
             };
-            case NORMAL -> switch (roll) {
+            case NORMAL -> switch (RANDOM.nextInt(10)) {
+                case 0  -> new ItemStack(Items.COPPER_SWORD);
+                case 1  -> new ItemStack(Items.COPPER_AXE);
+                case 2  -> new ItemStack(Items.COPPER_SPEAR);
+                case 3  -> new ItemStack(Items.IRON_SWORD);
+                case 4  -> new ItemStack(Items.IRON_AXE);
+                case 5  -> new ItemStack(Items.IRON_SPEAR);
+                case 6  -> new ItemStack(Items.GOLDEN_SWORD);
+                case 7  -> new ItemStack(Items.GOLDEN_AXE);
+                case 8  -> new ItemStack(Items.GOLDEN_SPEAR);
+                default -> switch (RANDOM.nextInt(3)) {
+                    case 0  -> new ItemStack(Items.IRON_SHOVEL);
+                    case 1  -> new ItemStack(Items.COPPER_SHOVEL);
+                    default -> new ItemStack(Items.GOLDEN_SHOVEL);
+                };
+            };
+            case HARD -> switch (RANDOM.nextInt(7)) {
                 case 0  -> new ItemStack(Items.IRON_SWORD);
-                case 1  -> new ItemStack(Items.STONE_SPEAR);
-                default -> new ItemStack(Items.IRON_AXE);
-            };
-            case HARD   -> switch (roll) {
-                case 0  -> new ItemStack(Items.DIAMOND_SWORD);
-                case 1  -> new ItemStack(Items.IRON_SPEAR);
-                default -> new ItemStack(Items.DIAMOND_SPEAR);
+                case 1  -> new ItemStack(Items.IRON_AXE);
+                case 2  -> new ItemStack(Items.IRON_SPEAR);
+                case 3  -> new ItemStack(Items.DIAMOND_SWORD);
+                case 4  -> new ItemStack(Items.DIAMOND_AXE);
+                case 5  -> new ItemStack(Items.DIAMOND_SPEAR);
+                default -> new ItemStack(Items.DIAMOND_SHOVEL);
             };
             default -> ItemStack.EMPTY;
         };
