@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Undead Riders",
-  "description": "Adds naturally spawning Zombie Horsemen and Skeleton Horsemen to the overworld surface. Difficulty-scaled weapons, armor, and stats. Fully configurable spawn rates.",
+  "description": "Adds naturally spawning Zombie Horsemen and Skeleton Horsemen to the overworld surface.",
   "authors": [
     "SwordfishBE"
   ],
