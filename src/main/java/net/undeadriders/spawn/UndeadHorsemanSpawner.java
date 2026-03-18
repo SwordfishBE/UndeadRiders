@@ -161,7 +161,8 @@ public class UndeadHorsemanSpawner {
             case ZOMBIE   -> !biome.is(Biomes.DESERT)
                           && !biome.is(Biomes.FROZEN_OCEAN)
                           && !biome.is(Biomes.DEEP_FROZEN_OCEAN)
-                          && !biome.is(Biomes.SNOWY_BEACH);
+                          && !biome.is(Biomes.SNOWY_BEACH)
+                          && !biome.is(Biomes.FROZEN_RIVER);
             case SKELETON -> !biome.is(Biomes.DESERT)
                           && !biome.is(Biomes.SWAMP)
                           && !biome.is(Biomes.MANGROVE_SWAMP)
@@ -172,7 +173,8 @@ public class UndeadHorsemanSpawner {
                           && !biome.is(Biomes.SNOWY_SLOPES)
                           && !biome.is(Biomes.FROZEN_OCEAN)
                           && !biome.is(Biomes.DEEP_FROZEN_OCEAN)
-                          && !biome.is(Biomes.SNOWY_BEACH);
+                          && !biome.is(Biomes.SNOWY_BEACH)
+                          && !biome.is(Biomes.FROZEN_RIVER);
             case DESERT   -> biome.is(Biomes.DESERT); // Parched: day & night
             case HUSK     -> biome.is(Biomes.DESERT); // Husk: night only
             case SWAMP    -> biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP);
