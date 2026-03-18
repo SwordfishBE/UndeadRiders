@@ -11,17 +11,18 @@
 - 💀 **Skeleton Horseman** — Skeleton on a Skeleton Horse. All biomes except Desert/Swamp/Frozen. Night only.
 - ☀️ **Parched Horseman** — Parched on a Skeleton Horse. Desert only. Day and night.
 - 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. Swamp and Mangrove Swamp only. Night only.
-- ❄️ **Stray Horseman** — Stray on a Skeleton Horse. Frozen biomes only. Night only.
-- 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield on Hard difficulty.
-- 🏹 **Enchanted bow on Hard** — Skeleton, Parched and Stray riders have a 30% chance for a Power I–III bow on Hard.
-- ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons.
-- 🛡️ **Difficulty-scaled horse armor** — Zombie Horses wear armor scaled to game difficulty.
-- 🎁 **Saddle drop** — All mod-spawned horses have a 10% base chance to drop a saddle on death. Scales with Looting (Looting III ≈ 20%).
+- ❄️ **Stray Horseman** — Stray on a Skeleton Horse. All frozen biomes. Night only.
+- 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 10% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
+- 🛡️ **Horse armor** — ZombieHorses have a configurable chance to wear armor (default 60%). 40% spawn without.
 - 🔑 **Tameable Skeleton Horses** — After killing the rider, Skeleton Horses can immediately be saddled and ridden.
+- 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield.
+- 🏹 **Enchanted bow on Hard** — Skeleton, Parched and Stray riders have a 30% chance for a Power I–III bow.
+- ⚠️ **Unarmed on Easy** — Zombie and Husk riders have a 25% chance to spawn without a weapon.
+- ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons including 1.21.11 Spears.
 - 🔀 **Independent toggles** — Each type can be enabled/disabled separately.
-- ⚙️ **Fully configurable** — Spawn rates, distances, timing, attempts per player, night-only toggle via JSON config.
+- ⚙️ **Fully configurable** — Spawn rates, saddle/armor chances, distances, timing, and more.
 - 🔄 **Live reload** — `/undeadriders reload` applies config changes without a restart.
-- 📋 **Info command** — `/undeadriders info` shows the current status of all types and caps in-game.
+- 📋 **Info command** — `/undeadriders info` shows the current status of all types in-game.
 - 🚫 **Non-interfering** — Never touches vanilla's spawn system.
 
 ---
@@ -36,34 +37,47 @@
 | Normal     | Copper Horse Armor  | Iron Horse Armor   | Gold Horse Armor    |
 | Hard       | Iron Horse Armor    | Gold Horse Armor   | Diamond Horse Armor |
 
-One option chosen at random.
+Armor only spawns at the configured probability (`zombieHorseArmorChance`, default 60%).
 
 ### Zombie / Husk Horseman — rider weapon
 
 | Difficulty | Options (1 chosen at random) |
 |------------|-------------------------------|
-| Easy       | Stone Sword, Stone Axe, Stone Spear, Wooden Sword, Wooden Axe, Wooden Spear, Wooden Shovel, Stone Shovel |
+| Easy       | **25% chance: no weapon.** Otherwise: Stone Sword, Stone Axe, Stone Spear, Wooden Sword, Wooden Axe, Wooden Spear, Wooden Shovel, Stone Shovel |
 | Normal     | Copper Sword, Copper Axe, Copper Spear, Iron Sword, Iron Axe, Iron Spear, Golden Sword, Golden Axe, Golden Spear, Iron/Copper/Golden Shovel |
 | Hard       | Iron Sword, Iron Axe, Iron Spear, Diamond Sword, Diamond Axe, Diamond Spear, Diamond Shovel |
 
-Drop chance: 5%. Additionally, on **Hard** there is a **40% chance** the rider also carries a shield (offhand, no drop).
+Drop chance: 5%. On **Hard**: 40% chance of a shield in offhand (no drop).
 
 ### Skeleton / Parched / Stray Horseman
 
-Rider equipment handled by vanilla's `finalizeSpawn()`. On **Hard**, there is a **30% chance** the rider spawns with a **Power I–III enchanted bow** (drop chance 10%).
+Rider equipment handled by vanilla's `finalizeSpawn()`. On **Hard**: 30% chance for a **Power I–III enchanted bow** (drop chance 10%).
 
 ---
+
+## 🌍 Spawn Rules
+
+| Rule | Details |
+|------|---------|
+| **Dimension** | Overworld only |
+| **Surface** | Sky must be visible (no caves) |
+| **Night / Thunder** | Required by default for all types except Parched *(configurable)* |
+| **Light level** | ≤ 7 |
+| **Ground** | Solid block below, no fluid |
+| **Headroom** | 3 air blocks required |
+| **Difficulty** | Not on Peaceful |
+| **Cap** | `maxHorsemenPerPlayer × online players` per type |
 
 ### Biome restrictions
 
 | Type | Biomes |
 |------|--------|
-| Zombie Horseman | All overworld biomes **except** Desert |
+| Zombie Horseman | All overworld biomes **except** Desert, Frozen Ocean, Deep Frozen Ocean, Snowy Beach |
 | Husk Horseman | Desert |
-| Skeleton Horseman | All overworld biomes **except** Desert, Swamp, Mangrove Swamp, Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes |
+| Skeleton Horseman | All overworld biomes **except** Desert, Swamp, Mangrove Swamp, and all frozen biomes |
 | Parched Horseman | Desert |
 | Bogged Horseman | Swamp, Mangrove Swamp |
-| Stray Horseman | Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes |
+| Stray Horseman | Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes, Frozen Ocean, Deep Frozen Ocean, Snowy Beach |
 
 ---
 
@@ -84,12 +98,15 @@ Generated automatically on first launch at:
 | `strayHorsemanEnabled`        | `true`  | Enable Stray Horseman (frozen biomes) |
 | `zombieHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `huskHorsemanSpawnRate`       | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
-| `skeletonHorsemanSpawnRate`   | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
-| `parchedHorsemanSpawnRate`    | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `skeletonHorsemanSpawnRate`   | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `parchedHorsemanSpawnRate`    | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `boggedHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
-| `strayHorsemanSpawnRate`      | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `strayHorsemanSpawnRate`      | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `zombieHorseSaddleChance`     | `0.15`  | Chance a ZombieHorse spawns with a saddle. `0.0` = never |
+| `skeletonHorseSaddleChance`   | `0.30`  | Chance a SkeletonHorse spawns with a saddle. `0.0` = never |
+| `zombieHorseArmorChance`      | `0.30`  | Chance a ZombieHorse spawns wearing armor. `0.0` = never |
 | `spawnCheckIntervalTicks`     | `400`   | Ticks between spawn rounds (20 = 1 s) |
-| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round — raise this to see more horsemen |
+| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round |
 | `minSpawnDistance`            | `24`    | Minimum spawn distance from player (blocks) |
 | `maxSpawnDistance`            | `64`    | Maximum spawn distance from player (blocks) |
 | `nightOnly`                   | `true`  | Night/thunderstorm only (ignored for Parched) |
@@ -108,10 +125,13 @@ Generated automatically on first launch at:
   "strayHorsemanEnabled": true,
   "zombieHorsemanSpawnRate": 0.15,
   "huskHorsemanSpawnRate": 0.15,
-  "skeletonHorsemanSpawnRate": 0.15,
-  "parchedHorsemanSpawnRate": 0.15,
+  "skeletonHorsemanSpawnRate": 0.1,
+  "parchedHorsemanSpawnRate": 0.1,
   "boggedHorsemanSpawnRate": 0.15,
-  "strayHorsemanSpawnRate": 0.15,
+  "strayHorsemanSpawnRate": 0.1,
+  "zombieHorseSaddleChance": 0.15,
+  "skeletonHorseSaddleChance": 0.3,
+  "zombieHorseArmorChance": 0.3,
   "spawnCheckIntervalTicks": 400,
   "spawnAttemptsPerPlayer": 6,
   "minSpawnDistance": 24,
@@ -168,3 +188,4 @@ chmod +x gradlew
 ## 📄 License
 
 Released under the [AGPL-3.0 License](LICENSE).
+
