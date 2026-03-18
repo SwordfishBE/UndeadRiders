@@ -55,19 +55,6 @@ Rider equipment handled by vanilla's `finalizeSpawn()`. On **Hard**: 30% chance 
 
 ---
 
-## 🌍 Spawn Rules
-
-| Rule | Details |
-|------|---------|
-| **Dimension** | Overworld only |
-| **Surface** | Sky must be visible (no caves) |
-| **Night / Thunder** | Required by default for all types except Parched *(configurable)* |
-| **Light level** | ≤ 7 |
-| **Ground** | Solid block below, no fluid |
-| **Headroom** | 3 air blocks required |
-| **Difficulty** | Not on Peaceful |
-| **Cap** | `maxHorsemenPerPlayer × online players` per type |
-
 ### Biome restrictions
 
 | Type | Biomes |
