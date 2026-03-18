@@ -24,16 +24,41 @@ public class UndeadRidersConfig {
     public boolean parchedHorsemanEnabled  = true;
     /** Swamp and Mangrove Swamp biomes only. */
     public boolean boggedHorsemanEnabled   = true;
-    /** Frozen biomes only (Ice Spikes, Snowy Plains, Jagged/Frozen Peaks, Snowy Slopes). */
+    /** Frozen biomes only. */
     public boolean strayHorsemanEnabled    = true;
 
     // ── Spawn rates (0.0 – 1.0) ───────────────────────────────────────────────
     public float zombieHorsemanSpawnRate   = 0.15f;
     public float huskHorsemanSpawnRate     = 0.15f;
-    public float skeletonHorsemanSpawnRate = 0.15f;
-    public float parchedHorsemanSpawnRate  = 0.15f;
+    public float skeletonHorsemanSpawnRate = 0.1f;
+    public float parchedHorsemanSpawnRate  = 0.1f;
     public float boggedHorsemanSpawnRate   = 0.15f;
-    public float strayHorsemanSpawnRate    = 0.15f;
+    public float strayHorsemanSpawnRate    = 0.1f;
+
+    // ── Saddle spawn chances ──────────────────────────────────────────────────
+    /**
+     * Chance (0.0–1.0) that a ZombieHorse spawns with a saddle equipped.
+     * The saddle still has a drop chance — players must hunt at night for saddled horses.
+     * Set to 0.0 to never spawn saddles on Zombie Horses.
+     * Default: 0.15 (15%)
+     */
+    public float zombieHorseSaddleChance   = 0.15f;
+
+    /**
+     * Chance (0.0–1.0) that a SkeletonHorse spawns with a saddle equipped.
+     * Set to 0.0 to never spawn saddles on Skeleton Horses.
+     * Default: 0.10 (10%)
+     */
+    public float skeletonHorseSaddleChance = 0.3f;
+
+    // ── Horse armor chance ────────────────────────────────────────────────────
+    /**
+     * Chance (0.0–1.0) that a ZombieHorse spawns wearing horse armor.
+     * The armor tier is still difficulty-scaled from the existing tables.
+     * Set to 0.0 to never spawn armor on Zombie Horses.
+     * Default: 0.60 (60%)
+     */
+    public float zombieHorseArmorChance    = 0.3f;
 
     // ── Spawn timing ──────────────────────────────────────────────────────────
     /** How often (ticks) a spawn round is triggered. Default: 400 (20 seconds). */
@@ -95,17 +120,20 @@ public class UndeadRidersConfig {
     }
 
     private void validate() {
-        zombieHorsemanSpawnRate   = clamp(zombieHorsemanSpawnRate,   0f, 1f);
-        huskHorsemanSpawnRate     = clamp(huskHorsemanSpawnRate,     0f, 1f);
-        skeletonHorsemanSpawnRate = clamp(skeletonHorsemanSpawnRate, 0f, 1f);
-        parchedHorsemanSpawnRate  = clamp(parchedHorsemanSpawnRate,  0f, 1f);
-        boggedHorsemanSpawnRate   = clamp(boggedHorsemanSpawnRate,   0f, 1f);
-        strayHorsemanSpawnRate    = clamp(strayHorsemanSpawnRate,    0f, 1f);
-        spawnCheckIntervalTicks   = Math.max(20, spawnCheckIntervalTicks);
-        spawnAttemptsPerPlayer    = Math.max(1,  spawnAttemptsPerPlayer);
-        minSpawnDistance          = Math.max(8,  minSpawnDistance);
-        maxSpawnDistance          = Math.max(minSpawnDistance + 8, maxSpawnDistance);
-        maxHorsemenPerPlayer      = Math.max(0,  maxHorsemenPerPlayer);
+        zombieHorsemanSpawnRate    = clamp(zombieHorsemanSpawnRate,    0f, 1f);
+        huskHorsemanSpawnRate      = clamp(huskHorsemanSpawnRate,      0f, 1f);
+        skeletonHorsemanSpawnRate  = clamp(skeletonHorsemanSpawnRate,  0f, 1f);
+        parchedHorsemanSpawnRate   = clamp(parchedHorsemanSpawnRate,   0f, 1f);
+        boggedHorsemanSpawnRate    = clamp(boggedHorsemanSpawnRate,    0f, 1f);
+        strayHorsemanSpawnRate     = clamp(strayHorsemanSpawnRate,     0f, 1f);
+        zombieHorseSaddleChance    = clamp(zombieHorseSaddleChance,    0f, 1f);
+        skeletonHorseSaddleChance  = clamp(skeletonHorseSaddleChance,  0f, 1f);
+        zombieHorseArmorChance     = clamp(zombieHorseArmorChance,     0f, 1f);
+        spawnCheckIntervalTicks    = Math.max(20, spawnCheckIntervalTicks);
+        spawnAttemptsPerPlayer     = Math.max(1,  spawnAttemptsPerPlayer);
+        minSpawnDistance           = Math.max(8,  minSpawnDistance);
+        maxSpawnDistance           = Math.max(minSpawnDistance + 8, maxSpawnDistance);
+        maxHorsemenPerPlayer       = Math.max(0,  maxHorsemenPerPlayer);
     }
 
     private static float clamp(float v, float min, float max) {
