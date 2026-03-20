@@ -162,7 +162,8 @@ public class UndeadHorsemanSpawner {
                           && !biome.is(Biomes.FROZEN_OCEAN)
                           && !biome.is(Biomes.DEEP_FROZEN_OCEAN)
                           && !biome.is(Biomes.SNOWY_BEACH)
-                          && !biome.is(Biomes.FROZEN_RIVER);
+                          && !biome.is(Biomes.FROZEN_RIVER)
+                          && !biome.is(Biomes.MUSHROOM_FIELDS);
             case SKELETON -> !biome.is(Biomes.DESERT)
                           && !biome.is(Biomes.SWAMP)
                           && !biome.is(Biomes.MANGROVE_SWAMP)
@@ -174,10 +175,11 @@ public class UndeadHorsemanSpawner {
                           && !biome.is(Biomes.FROZEN_OCEAN)
                           && !biome.is(Biomes.DEEP_FROZEN_OCEAN)
                           && !biome.is(Biomes.SNOWY_BEACH)
-                          && !biome.is(Biomes.FROZEN_RIVER);
-            case DESERT   -> biome.is(Biomes.DESERT); // Parched: day & night
-            case HUSK     -> biome.is(Biomes.DESERT); // Husk: night only
-            case SWAMP    -> biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP);
+                          && !biome.is(Biomes.FROZEN_RIVER)
+                          && !biome.is(Biomes.MUSHROOM_FIELDS);
+            case DESERT   -> biome.is(Biomes.DESERT) && !biome.is(Biomes.MUSHROOM_FIELDS); // Parched: day & night
+            case HUSK     -> biome.is(Biomes.DESERT) && !biome.is(Biomes.MUSHROOM_FIELDS); // Husk: night only
+            case SWAMP    -> (biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP)) && !biome.is(Biomes.MUSHROOM_FIELDS);
             case FROZEN   -> biome.is(Biomes.ICE_SPIKES)
                           || biome.is(Biomes.SNOWY_PLAINS)
                           || biome.is(Biomes.JAGGED_PEAKS)
