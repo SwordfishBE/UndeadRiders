@@ -44,7 +44,7 @@ public class UndeadRiders implements ModInitializer {
         CONFIG = UndeadRidersConfig.load();
 
         // Spawn logic
-        ServerTickEvents.END_WORLD_TICK.register(UndeadHorsemanSpawner::onWorldTick);
+        ServerTickEvents.END_LEVEL_TICK.register(UndeadHorsemanSpawner::onWorldTick);
 
         // Commands
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
@@ -95,3 +95,4 @@ public class UndeadRiders implements ModInitializer {
         return enabled ? "§a[ON] " : "§c[OFF]";
     }
 }
+

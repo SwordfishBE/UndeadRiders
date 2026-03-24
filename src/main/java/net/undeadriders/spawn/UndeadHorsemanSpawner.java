@@ -233,7 +233,7 @@ public class UndeadHorsemanSpawner {
     }
 
     private static boolean isNightOrThunder(ServerLevel world) {
-        return world.getDayTime() % 24000L >= 12000L || world.isThundering();
+        return world.getOverworldClockTime() % 24000L >= 12000L || world.isThundering();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -538,3 +538,4 @@ public class UndeadHorsemanSpawner {
         return world.getEntities((EntityType<? extends Entity>) type, e -> e.isPassenger()).size();
     }
 }
+

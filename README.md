@@ -18,7 +18,7 @@
 - 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield.
 - 🏹 **Enchanted bow on Hard** — Skeleton, Parched and Stray riders have a 30% chance for a Power I–III bow.
 - ⚠️ **Unarmed on Easy** — Zombie and Husk riders have a 25% chance to spawn without a weapon.
-- ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons including 1.21.11 Spears.
+- ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons including spears introduced in modern Minecraft versions.
 - 🔀 **Independent toggles** — Each type can be enabled/disabled separately.
 - ⚙️ **Fully configurable** — Spawn rates, saddle/armor chances, distances, timing, and more.
 - 🔄 **Live reload** — `/undeadriders reload` applies config changes without a restart.
@@ -175,4 +175,5 @@ chmod +x gradlew
 ## 📄 License
 
 Released under the [AGPL-3.0 License](LICENSE).
+
 
