@@ -2,11 +2,13 @@ package net.undeadriders;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.Permissions;
 import net.undeadriders.config.UndeadRidersConfig;
 import net.undeadriders.spawn.UndeadHorsemanSpawner;
+import net.undeadriders.util.ModrinthUpdateChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ public class UndeadRiders implements ModInitializer {
 
         // Spawn logic
         ServerTickEvents.END_LEVEL_TICK.register(UndeadHorsemanSpawner::onWorldTick);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> ModrinthUpdateChecker.checkOnceAsync());
 
         // Commands
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
@@ -95,4 +98,3 @@ public class UndeadRiders implements ModInitializer {
         return enabled ? "§a[ON] " : "§c[OFF]";
     }
 }
-
