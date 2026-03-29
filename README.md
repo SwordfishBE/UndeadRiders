@@ -2,6 +2,11 @@
 
 **Undead Riders** is a Fabric mod for Minecraft that adds naturally spawning undead horsemen to the overworld surface. Six types in total, each tied to a fitting biome. Fully configurable and difficulty-scaled.
 
+[![GitHub Release](https://img.shields.io/github/v/release/SwordfishBE/UndeadRiders?display_name=release&logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
+[![GitHub Downloads](https://img.shields.io/github/downloads/SwordfishBE/UndeadRiders/total?logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/JVLPDceE?logo=modrinth&logoColor=white&label=Modrinth%20downloads)](https://modrinth.com/mod/undeadriders)
+[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1489518?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/undead-riders)
+
 ---
 
 ## ✨ Features
@@ -144,7 +149,6 @@ Both commands require **gamemaster** permission (op level 2).
 ## 🛠️ Technical Details
 
 - **Mod Loader**: [Fabric](https://fabricmc.net/)
-- **Mappings**: Official Mojang Mappings
 - **Required**: [Fabric API](https://modrinth.com/mod/fabric-api)
 - **Server-side**: Yes — no client mod required
 - **Single player**: Yes — the mod works in single player worlds
@@ -153,10 +157,16 @@ Both commands require **gamemaster** permission (op level 2).
 
 ## 📦 Installation
 
-1. Install [Fabric Loader](https://fabricmc.net/use/) for Minecraft.
-2. Download [Fabric API](https://modrinth.com/mod/fabric-api) and place it in `mods/`.
-3. Download `undead-riders-<version>.jar` and place it in `mods/`.
-4. Launch Minecraft. The config is created automatically on first run.
+| Platform   | Link |
+|------------|------|
+| GitHub     | [Releases](https://github.com/SwordfishBE/elevator-fabric-mod/releases) |
+| Modrinth   | [Undead Riders](https://modrinth.com/mod/undeadriders) |
+| CurseForge | [Undead Riders](https://www.curseforge.com/minecraft/mc-mods/undead-riders) |
+
+1. Download the latest JAR from your preferred platform above.
+2. Place the JAR in your server's `mods/` folder.
+3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed.
+4. Start Minecraft — the config file will be created automatically.
 
 ---
 
@@ -175,5 +185,3 @@ chmod +x gradlew
 ## 📄 License
 
 Released under the [AGPL-3.0 License](LICENSE).
-
-
