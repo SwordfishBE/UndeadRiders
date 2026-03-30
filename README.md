@@ -5,7 +5,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/SwordfishBE/UndeadRiders?display_name=release&logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SwordfishBE/UndeadRiders/total?logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/JVLPDceE?logo=modrinth&logoColor=white&label=Modrinth%20downloads)](https://modrinth.com/mod/undeadriders)
-[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1489518?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/undead-riders)
+[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1489518?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/leashed-teleport)
 
 ---
 
@@ -159,7 +159,7 @@ Both commands require **gamemaster** permission (op level 2).
 
 | Platform   | Link |
 |------------|------|
-| GitHub     | [Releases](https://github.com/SwordfishBE/elevator-fabric-mod/releases) |
+| GitHub     | [Releases](https://github.com/SwordfishBE/UndeadRiders/releases) |
 | Modrinth   | [Undead Riders](https://modrinth.com/mod/undeadriders) |
 | CurseForge | [Undead Riders](https://www.curseforge.com/minecraft/mc-mods/undead-riders) |
 
