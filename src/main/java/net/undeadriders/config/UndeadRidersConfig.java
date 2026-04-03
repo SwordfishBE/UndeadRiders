@@ -2,6 +2,7 @@ package net.undeadriders.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.undeadriders.UndeadRiders;
 
@@ -89,7 +90,9 @@ public class UndeadRidersConfig {
     public static UndeadRidersConfig load() {
         File file = CONFIG_PATH.toFile();
         if (file.exists()) {
-            try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+            try (JsonReader reader = new JsonReader(
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+                reader.setLenient(true);
                 UndeadRidersConfig config = GSON.fromJson(reader, UndeadRidersConfig.class);
                 if (config != null) {
                     config.validate();
@@ -112,11 +115,92 @@ public class UndeadRidersConfig {
             //noinspection ResultOfMethodCallIgnored
             file.getParentFile().mkdirs();
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-                GSON.toJson(this, writer);
+                writer.write(toCommentedJson());
             }
         } catch (IOException e) {
             UndeadRiders.LOGGER.error("[UndeadRiders] Failed to save config.", e);
         }
+    }
+
+    private String toCommentedJson() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+
+        appendComment(sb, "Enable or disable each horseman type independently.");
+        appendBoolean(sb, "zombieHorsemanEnabled", zombieHorsemanEnabled, "Enable Zombie Horseman.");
+        appendBoolean(sb, "huskHorsemanEnabled", huskHorsemanEnabled, "Enable Husk Horseman. Desert biomes only.");
+        appendBoolean(sb, "skeletonHorsemanEnabled", skeletonHorsemanEnabled, "Enable Skeleton Horseman.");
+        appendBoolean(sb, "parchedHorsemanEnabled", parchedHorsemanEnabled, "Enable Parched Horseman. Desert biomes only.");
+        appendBoolean(sb, "boggedHorsemanEnabled", boggedHorsemanEnabled, "Enable Bogged Horseman. Swamp and Mangrove Swamp only.");
+        appendBoolean(sb, "strayHorsemanEnabled", strayHorsemanEnabled, "Enable Stray Horseman. Frozen biomes only.");
+        sb.append('\n');
+
+        appendComment(sb, "Spawn chance per attempt. Range: 0.0 to 1.0.");
+        appendFloat(sb, "zombieHorsemanSpawnRate", zombieHorsemanSpawnRate, "Zombie Horseman spawn chance per attempt.");
+        appendFloat(sb, "huskHorsemanSpawnRate", huskHorsemanSpawnRate, "Husk Horseman spawn chance per attempt.");
+        appendFloat(sb, "skeletonHorsemanSpawnRate", skeletonHorsemanSpawnRate, "Skeleton Horseman spawn chance per attempt.");
+        appendFloat(sb, "parchedHorsemanSpawnRate", parchedHorsemanSpawnRate, "Parched Horseman spawn chance per attempt.");
+        appendFloat(sb, "boggedHorsemanSpawnRate", boggedHorsemanSpawnRate, "Bogged Horseman spawn chance per attempt.");
+        appendFloat(sb, "strayHorsemanSpawnRate", strayHorsemanSpawnRate, "Stray Horseman spawn chance per attempt.");
+        sb.append('\n');
+
+        appendComment(sb, "Saddle spawn chances. Range: 0.0 to 1.0.");
+        appendFloat(sb, "zombieHorseSaddleChance", zombieHorseSaddleChance, "Chance a Zombie Horse spawns with a saddle. Saddles still use their normal drop logic.");
+        appendFloat(sb, "skeletonHorseSaddleChance", skeletonHorseSaddleChance, "Chance a Skeleton Horse spawns with a saddle.");
+        sb.append('\n');
+
+        appendComment(sb, "Horse armor spawn chance. Range: 0.0 to 1.0.");
+        appendFloat(sb, "zombieHorseArmorChance", zombieHorseArmorChance, "Chance a Zombie Horse spawns wearing horse armor. Armor tier still scales by difficulty.");
+        sb.append('\n');
+
+        appendComment(sb, "Spawn timing and attempt count.");
+        appendInt(sb, "spawnCheckIntervalTicks", spawnCheckIntervalTicks, "Ticks between spawn rounds. 20 ticks = 1 second.");
+        appendInt(sb, "spawnAttemptsPerPlayer", spawnAttemptsPerPlayer, "Spawn attempts per player during each spawn round.");
+        sb.append('\n');
+
+        appendComment(sb, "Valid spawn distance from the player, in blocks.");
+        appendInt(sb, "minSpawnDistance", minSpawnDistance, "Minimum spawn distance from the player.");
+        appendInt(sb, "maxSpawnDistance", maxSpawnDistance, "Maximum spawn distance from the player.");
+        sb.append('\n');
+
+        appendComment(sb, "General spawn conditions and caps.");
+        appendBoolean(sb, "nightOnly", nightOnly, "If true, most horsemen only spawn at night or during thunderstorms. Parched ignores this and can spawn day and night.");
+        appendInt(sb, "maxHorsemenPerPlayer", maxHorsemenPerPlayer, "Maximum number of horsemen of each type per online player.", false);
+
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    private static void appendComment(StringBuilder sb, String comment) {
+        sb.append("  // ").append(comment).append('\n');
+    }
+
+    private static void appendBoolean(StringBuilder sb, String key, boolean value, String comment) {
+        appendBoolean(sb, key, value, comment, true);
+    }
+
+    private static void appendBoolean(StringBuilder sb, String key, boolean value, String comment, boolean comma) {
+        appendEntry(sb, key, Boolean.toString(value), comment, comma);
+    }
+
+    private static void appendFloat(StringBuilder sb, String key, float value, String comment) {
+        appendEntry(sb, key, Float.toString(value), comment, true);
+    }
+
+    private static void appendInt(StringBuilder sb, String key, int value, String comment) {
+        appendInt(sb, key, value, comment, true);
+    }
+
+    private static void appendInt(StringBuilder sb, String key, int value, String comment, boolean comma) {
+        appendEntry(sb, key, Integer.toString(value), comment, comma);
+    }
+
+    private static void appendEntry(StringBuilder sb, String key, String value, String comment, boolean comma) {
+        sb.append("  \"").append(key).append("\": ").append(value);
+        if (comma) {
+            sb.append(',');
+        }
+        sb.append(" // ").append(comment).append('\n');
     }
 
     private void validate() {

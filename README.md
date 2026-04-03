@@ -17,8 +17,8 @@
 - ☀️ **Parched Horseman** — Parched on a Skeleton Horse. Desert only. Day and night.
 - 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. Swamp and Mangrove Swamp only. Night only.
 - ❄️ **Stray Horseman** — Stray on a Skeleton Horse. All frozen biomes. Night only.
-- 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 10% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
-- 🛡️ **Horse armor** — ZombieHorses have a configurable chance to wear armor (default 60%). 40% spawn without.
+- 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 30% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
+- 🛡️ **Horse armor** — ZombieHorses have a configurable chance to wear armor (default 30%).
 - 🔑 **Tameable Skeleton Horses** — After killing the rider, Skeleton Horses can immediately be saddled and ridden.
 - 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield.
 - 🏹 **Enchanted bow on Hard** — Skeleton, Parched and Stray riders have a 30% chance for a Power I–III bow.
@@ -42,7 +42,7 @@
 | Normal     | Copper Horse Armor  | Iron Horse Armor   | Gold Horse Armor    |
 | Hard       | Iron Horse Armor    | Gold Horse Armor   | Diamond Horse Armor |
 
-Armor only spawns at the configured probability (`zombieHorseArmorChance`, default 60%).
+Armor only spawns at the configured probability (`zombieHorseArmorChance`, default 30%).
 
 ### Zombie / Husk Horseman — rider weapon
 
@@ -107,28 +107,31 @@ Generated automatically on first launch at:
 > ⚠️ **After updating the mod**, delete `config/undeadriders.json` once to regenerate it with any new fields.
 
 ### Example config
-```json
+```jsonc
 {
-  "zombieHorsemanEnabled": true,
-  "huskHorsemanEnabled": true,
-  "skeletonHorsemanEnabled": true,
-  "parchedHorsemanEnabled": true,
-  "boggedHorsemanEnabled": true,
-  "strayHorsemanEnabled": true,
-  "zombieHorsemanSpawnRate": 0.15,
-  "huskHorsemanSpawnRate": 0.15,
-  "skeletonHorsemanSpawnRate": 0.1,
-  "parchedHorsemanSpawnRate": 0.1,
-  "boggedHorsemanSpawnRate": 0.15,
-  "strayHorsemanSpawnRate": 0.1,
-  "zombieHorseSaddleChance": 0.15,
-  "skeletonHorseSaddleChance": 0.3,
-  "zombieHorseArmorChance": 0.3,
-  "spawnCheckIntervalTicks": 400,
-  "spawnAttemptsPerPlayer": 6,
-  "minSpawnDistance": 24,
-  "maxSpawnDistance": 64,
-  "nightOnly": true,
+  "zombieHorsemanEnabled": true,   // Enable Zombie Horseman.
+  "huskHorsemanEnabled": true,     // Enable Husk Horseman. Desert biomes only.
+  "skeletonHorsemanEnabled": true, // Enable Skeleton Horseman.
+  "parchedHorsemanEnabled": true,  // Enable Parched Horseman. Desert biomes only.
+  "boggedHorsemanEnabled": true,   // Enable Bogged Horseman. Swamp and Mangrove Swamp only.
+  "strayHorsemanEnabled": true,    // Enable Stray Horseman. Frozen biomes only.
+
+  "zombieHorsemanSpawnRate": 0.15,   // Zombie Horseman spawn chance per attempt.
+  "huskHorsemanSpawnRate": 0.15,     // Husk Horseman spawn chance per attempt.
+  "skeletonHorsemanSpawnRate": 0.1,  // Skeleton Horseman spawn chance per attempt.
+  "parchedHorsemanSpawnRate": 0.1,   // Parched Horseman spawn chance per attempt.
+  "boggedHorsemanSpawnRate": 0.15,   // Bogged Horseman spawn chance per attempt.
+  "strayHorsemanSpawnRate": 0.1,     // Stray Horseman spawn chance per attempt.
+
+  "zombieHorseSaddleChance": 0.15,   // Chance a Zombie Horse spawns with a saddle.
+  "skeletonHorseSaddleChance": 0.3,  // Chance a Skeleton Horse spawns with a saddle.
+  "zombieHorseArmorChance": 0.3,     // Chance a Zombie Horse spawns wearing horse armor.
+
+  "spawnCheckIntervalTicks": 400, // Ticks between spawn rounds. 20 ticks = 1 second.
+  "spawnAttemptsPerPlayer": 6,    // Spawn attempts per player during each spawn round.
+  "minSpawnDistance": 24,         // Minimum spawn distance from the player.
+  "maxSpawnDistance": 64,         // Maximum spawn distance from the player.
+  "nightOnly": true,              // Most horsemen only spawn at night or during thunderstorms.
   "maxHorsemenPerPlayer": 5
 }
 ```
