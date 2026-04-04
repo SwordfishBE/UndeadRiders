@@ -39,6 +39,16 @@ public class UndeadRiders implements ModInitializer {
     /** Globally accessible config instance. Reloaded via /undeadriders reload. */
     public static UndeadRidersConfig CONFIG;
 
+    public static UndeadRidersConfig loadConfigForEditing() {
+        return UndeadRidersConfig.load();
+    }
+
+    public static void applyEditedConfig(UndeadRidersConfig config) {
+        config.validateForEditing();
+        config.save();
+        CONFIG = config;
+    }
+
     @Override
     public void onInitialize() {
         LOGGER.info("[UndeadRiders] Initializing...");

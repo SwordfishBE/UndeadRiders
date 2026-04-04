@@ -23,6 +23,9 @@
   "entrypoints": {
     "main": [
       "net.undeadriders.UndeadRiders"
+    ],
+    "modmenu": [
+      "net.undeadriders.client.UndeadRidersModMenuIntegration"
     ]
   },
 
@@ -35,5 +38,8 @@
     "fabric-api": "*"
   },
 
-  "suggests": {}
+  "suggests": {
+    "modmenu": "*",
+    "cloth-config": "*"
+  }
 }

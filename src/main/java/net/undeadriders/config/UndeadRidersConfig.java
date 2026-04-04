@@ -122,6 +122,10 @@ public class UndeadRidersConfig {
         }
     }
 
+    public void validateForEditing() {
+        validate();
+    }
+
     private String toCommentedJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");

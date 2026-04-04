@@ -26,6 +26,7 @@
 - ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons including spears introduced in modern Minecraft versions.
 - 🔀 **Independent toggles** — Each type can be enabled/disabled separately.
 - ⚙️ **Fully configurable** — Spawn rates, saddle/armor chances, distances, timing, and more.
+- 🖥️ **Optional Mod Menu support** — On clients with Mod Menu and Cloth Config installed, the config can also be edited through an in-game screen.
 - 🔄 **Live reload** — `/undeadriders reload` applies config changes without a restart.
 - 📋 **Info command** — `/undeadriders info` shows the current status of all types in-game.
 - 🚫 **Non-interfering** — Never touches vanilla's spawn system.
@@ -79,6 +80,8 @@ Generated automatically on first launch at:
 ```
 <game>/config/undeadriders.json
 ```
+
+With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config screen.
 
 | Option                        | Default | Description |
 |-------------------------------|---------|-------------|
@@ -153,6 +156,7 @@ Both commands require **gamemaster** permission (op level 2).
 
 - **Mod Loader**: [Fabric](https://fabricmc.net/)
 - **Required**: [Fabric API](https://modrinth.com/mod/fabric-api)
+- **Optional (client-side)**: [Mod Menu](https://modrinth.com/mod/modmenu), [Cloth Config](https://modrinth.com/mod/cloth-config)
 - **Server-side**: Yes — no client mod required
 - **Single player**: Yes — the mod works in single player worlds
 
@@ -169,7 +173,8 @@ Both commands require **gamemaster** permission (op level 2).
 1. Download the latest JAR from your preferred platform above.
 2. Place the JAR in your server's `mods/` folder.
 3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed.
-4. Start Minecraft — the config file will be created automatically.
+4. Optional for in-game config editing on the client: install [Mod Menu](https://modrinth.com/mod/modmenu) and [Cloth Config](https://modrinth.com/mod/cloth-config).
+5. Start Minecraft — the config file will be created automatically.
 
 ---
 
