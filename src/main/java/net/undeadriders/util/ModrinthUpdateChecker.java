@@ -67,7 +67,7 @@ public final class ModrinthUpdateChecker {
             String currentVersion = currentVersion();
             String newestVersion = latestVersion.get();
             if (isNewerVersion(newestVersion, currentVersion)) {
-                UndeadRiders.LOGGER.debug("[UndeadRiders] New version available: {} (current: {})",
+                UndeadRiders.LOGGER.info("[UndeadRiders] New version available: {} (current: {})",
                         newestVersion, currentVersion);
             }
         } catch (IOException | InterruptedException e) {
