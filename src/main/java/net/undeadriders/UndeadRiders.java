@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.Permissions;
 import net.undeadriders.config.UndeadRidersConfig;
@@ -49,10 +50,15 @@ public class UndeadRiders implements ModInitializer {
         CONFIG = config;
     }
 
+    public static String getCurrentVersion() {
+        return FabricLoader.getInstance()
+            .getModContainer(MOD_ID)
+            .map(container -> container.getMetadata().getVersion().getFriendlyString())
+            .orElse("unknown");
+    }
+
     @Override
     public void onInitialize() {
-        LOGGER.info("[UndeadRiders] Initializing...");
-
         CONFIG = UndeadRidersConfig.load();
 
         // Spawn logic
@@ -101,7 +107,7 @@ public class UndeadRiders implements ModInitializer {
             )
         );
 
-        LOGGER.info("[UndeadRiders] Ready!");
+        LOGGER.info("[UndeadRiders] Mod initialized. Version: {}", getCurrentVersion());
     }
 
     private static String status(boolean enabled) {

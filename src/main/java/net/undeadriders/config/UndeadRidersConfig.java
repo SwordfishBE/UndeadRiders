@@ -105,7 +105,7 @@ public class UndeadRidersConfig {
         }
         UndeadRidersConfig defaults = new UndeadRidersConfig();
         defaults.save();
-        UndeadRiders.LOGGER.info("[UndeadRiders] Created default config at {}", CONFIG_PATH);
+        UndeadRiders.LOGGER.debug("[UndeadRiders] Created default config at {}", CONFIG_PATH);
         return defaults;
     }
 
