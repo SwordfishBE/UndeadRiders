@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -219,7 +220,8 @@ public class UndeadHorsemanSpawner {
             if (!matchesBiome(world, candidate, filter)) continue;
             if (!world.canSeeSky(candidate)) continue;
             if (!skipNightCheck && cfg.nightOnly && !isNightOrThunder(world)) continue;
-            if (world.getMaxLocalRawBrightness(candidate) > 7) continue;
+            if (world.getBrightness(LightLayer.SKY, candidate) > 7) continue;
+            if (world.getBrightness(LightLayer.BLOCK, candidate) != 0) continue;
             if (!world.getBlockState(candidate.below()).isSolid()) continue;
             if (!world.getBlockState(candidate).isAir()) continue;
             if (!world.getBlockState(candidate.above()).isAir()) continue;
@@ -538,4 +540,3 @@ public class UndeadHorsemanSpawner {
         return world.getEntities((EntityType<? extends Entity>) type, e -> e.isPassenger()).size();
     }
 }
-
