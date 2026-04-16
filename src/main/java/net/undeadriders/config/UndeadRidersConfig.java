@@ -99,7 +99,7 @@ public class UndeadRidersConfig {
                     config.save();
                     return config;
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 UndeadRiders.LOGGER.error("[UndeadRiders] Failed to read config — using defaults.", e);
             }
         }

@@ -87,7 +87,6 @@ public final class ModrinthUpdateChecker {
         JsonArray versions = root.getAsJsonArray();
         String currentMinecraftVersion = currentMinecraftVersion();
         VersionCandidate bestMatch = null;
-        VersionCandidate bestRelease = null;
 
         for (JsonElement versionElement : versions) {
             if (!versionElement.isJsonObject()) {
@@ -108,10 +107,6 @@ public final class ModrinthUpdateChecker {
 
             VersionCandidate candidate = new VersionCandidate(versionNumber, publishedAt);
             if ("release".equalsIgnoreCase(versionType)) {
-                if (bestRelease == null || candidate.isNewerThan(bestRelease)) {
-                    bestRelease = candidate;
-                }
-
                 if (matchesCurrentEnvironment(versionObject, currentMinecraftVersion)
                         && (bestMatch == null || candidate.isNewerThan(bestMatch))) {
                     bestMatch = candidate;
@@ -119,11 +114,7 @@ public final class ModrinthUpdateChecker {
             }
         }
 
-        if (bestMatch != null) {
-            return Optional.of(bestMatch.versionNumber());
-        }
-
-        return Optional.ofNullable(bestRelease != null ? bestRelease.versionNumber() : null);
+        return Optional.ofNullable(bestMatch != null ? bestMatch.versionNumber() : null);
     }
 
     private static String getString(JsonObject object, String key) {

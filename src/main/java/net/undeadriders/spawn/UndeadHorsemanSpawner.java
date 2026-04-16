@@ -202,8 +202,9 @@ public class UndeadHorsemanSpawner {
         int minDist = cfg.minSpawnDistance;
         int range   = cfg.maxSpawnDistance - minDist;
 
-        // Only Parched (BiomeFilter.DESERT) can spawn day or night; all others respect nightOnly
-        boolean skipNightCheck = (filter == BiomeFilter.DESERT);
+        // Parched can always spawn in daylight. Other types can also spawn in daylight
+        // when nightOnly is disabled in the config.
+        boolean allowDaylightSpawns = filter == BiomeFilter.DESERT || !cfg.nightOnly;
 
         // Biome-restricted types get more attempts since their target biomes may be rare near the player
         int maxAttempts = (filter == BiomeFilter.ZOMBIE || filter == BiomeFilter.SKELETON) ? 12 : 24;
@@ -219,8 +220,8 @@ public class UndeadHorsemanSpawner {
 
             if (!matchesBiome(world, candidate, filter)) continue;
             if (!world.canSeeSky(candidate)) continue;
-            if (!skipNightCheck && cfg.nightOnly && !isNightOrThunder(world)) continue;
-            if (!Monster.isDarkEnoughToSpawn(world, candidate, world.getRandom())) continue;
+            if (!allowDaylightSpawns && !isNightOrThunder(world)) continue;
+            if (!allowDaylightSpawns && !Monster.isDarkEnoughToSpawn(world, candidate, world.getRandom())) continue;
             if (!world.getBlockState(candidate.below()).isSolid()) continue;
             if (!world.getBlockState(candidate).isAir()) continue;
             if (!world.getBlockState(candidate.above()).isAir()) continue;
