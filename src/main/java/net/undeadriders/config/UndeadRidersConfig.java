@@ -81,6 +81,13 @@ public class UndeadRidersConfig {
     /** Max horsemen of each type per online player. Default: 5 */
     public int maxHorsemenPerPlayer = 5;
 
+    // ── Mod compat ────────────────────────────────────────────────────────────
+    /**
+     * If true and Open Parties and Claims is installed, Undead Riders will not
+     * naturally spawn horsemen inside claims that disable hostile natural spawns.
+     */
+    public boolean openPartiesAndClaimsSupport = true;
+
     // ── Load / Save ───────────────────────────────────────────────────────────
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
@@ -169,7 +176,11 @@ public class UndeadRidersConfig {
 
         appendComment(sb, "General spawn conditions and caps.");
         appendBoolean(sb, "nightOnly", nightOnly, "If true, most horsemen only spawn at night or during thunderstorms. Parched ignores this and can spawn day and night.");
-        appendInt(sb, "maxHorsemenPerPlayer", maxHorsemenPerPlayer, "Maximum number of horsemen of each type per online player.", false);
+        appendInt(sb, "maxHorsemenPerPlayer", maxHorsemenPerPlayer, "Maximum number of horsemen of each type per online player.");
+        sb.append('\n');
+
+        appendComment(sb, "Optional mod compatibility.");
+        appendBoolean(sb, "openPartiesAndClaimsSupport", openPartiesAndClaimsSupport, "Respect Open Parties and Claims hostile natural spawn protection when OPAC is installed.", false);
 
         sb.append("}\n");
         return sb.toString();

@@ -26,6 +26,7 @@
 - ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons including spears introduced in modern Minecraft versions.
 - 🔀 **Independent toggles** — Each type can be enabled/disabled separately.
 - ⚙️ **Fully configurable** — Spawn rates, saddle/armor chances, distances, timing, and more.
+- 🧭 **Optional Open Parties and Claims support** — When OPAC is installed, Undead Riders respects claimed chunks where hostile natural spawning is disabled.
 - 🖥️ **Optional Mod Menu support** — On clients with Mod Menu and Cloth Config installed, the config can also be edited through an in-game screen.
 - 🔄 **Live reload** — `/undeadriders reload` applies config changes without a restart.
 - 📋 **Info command** — `/undeadriders info` shows the current status of all types in-game.
@@ -106,8 +107,15 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 | `maxSpawnDistance`            | `64`    | Maximum spawn distance from player (blocks) |
 | `nightOnly`                   | `true`  | Night/thunderstorm only (ignored for Parched) |
 | `maxHorsemenPerPlayer`        | `5`     | Max per type per online player |
+| `openPartiesAndClaimsSupport` | `true`  | Respect Open Parties and Claims hostile natural spawn protection when OPAC is installed |
 
 > ⚠️ **After updating the mod**, delete `config/undeadriders.json` once to regenerate it with any new fields.
+
+### Open Parties and Claims compatibility
+
+If [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims) is installed and `openPartiesAndClaimsSupport` is enabled, Undead Riders checks OPAC claim settings before spawning a horseman.
+
+Claims that have hostile natural spawning disabled, for example through OPAC's "allow hostile spawn" setting, will block Undead Riders natural spawns in that claimed area.
 
 ### Example config
 ```jsonc
@@ -135,7 +143,9 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
   "minSpawnDistance": 24,         // Minimum spawn distance from the player.
   "maxSpawnDistance": 64,         // Maximum spawn distance from the player.
   "nightOnly": true,              // Most horsemen only spawn at night or during thunderstorms.
-  "maxHorsemenPerPlayer": 5
+  "maxHorsemenPerPlayer": 5,      // Maximum number of horsemen of each type per online player.
+
+  "openPartiesAndClaimsSupport": true // Respect OPAC hostile natural spawn protection.
 }
 ```
 
@@ -156,6 +166,7 @@ Both commands require **gamemaster** permission (op level 2).
 
 - **Mod Loader**: [Fabric](https://fabricmc.net/)
 - **Required**: [Fabric API](https://modrinth.com/mod/fabric-api)
+- **Optional (server-side)**: [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims)
 - **Optional (client-side)**: [Mod Menu](https://modrinth.com/mod/modmenu), [Cloth Config](https://modrinth.com/mod/cloth-config)
 - **Server-side**: Yes — no client mod required
 - **Single player**: Yes — the mod works in single player worlds
@@ -173,8 +184,9 @@ Both commands require **gamemaster** permission (op level 2).
 1. Download the latest JAR from your preferred platform above.
 2. Place the JAR in your server's `mods/` folder.
 3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed.
-4. Optional for in-game config editing on the client: install [Mod Menu](https://modrinth.com/mod/modmenu) and [Cloth Config](https://modrinth.com/mod/cloth-config).
-5. Start Minecraft — the config file will be created automatically.
+4. Optional for claim protection support: install [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims) on the server.
+5. Optional for in-game config editing on the client: install [Mod Menu](https://modrinth.com/mod/modmenu) and [Cloth Config](https://modrinth.com/mod/cloth-config).
+6. Start Minecraft — the config file will be created automatically.
 
 ---
 

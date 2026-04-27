@@ -27,7 +27,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.fabricmc.loader.api.FabricLoader;
 import net.undeadriders.UndeadRiders;
+import net.undeadriders.compat.OpenPartiesAndClaimsCompat;
 import net.undeadriders.config.UndeadRidersConfig;
 
 import java.util.List;
@@ -228,10 +230,17 @@ public class UndeadHorsemanSpawner {
             if (!world.getBlockState(candidate.above(2)).isAir()) continue;
             if (!world.getFluidState(candidate).isEmpty()) continue;
             if (!world.getFluidState(candidate.below()).isEmpty()) continue;
+            if (isBlockedByOpenPartiesAndClaims(world, candidate, cfg)) continue;
 
             return candidate;
         }
         return null;
+    }
+
+    private static boolean isBlockedByOpenPartiesAndClaims(ServerLevel world, BlockPos pos, UndeadRidersConfig cfg) {
+        return cfg.openPartiesAndClaimsSupport
+            && FabricLoader.getInstance().isModLoaded(UndeadRiders.OPEN_PARTIES_AND_CLAIMS_MOD_ID)
+            && OpenPartiesAndClaimsCompat.preventsHostileNaturalSpawn(world, pos);
     }
 
     private static boolean isNightOrThunder(ServerLevel world) {

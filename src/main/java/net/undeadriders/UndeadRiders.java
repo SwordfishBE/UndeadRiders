@@ -36,6 +36,7 @@ import static net.minecraft.commands.Commands.literal;
 public class UndeadRiders implements ModInitializer {
 
     public static final String MOD_ID = "undeadriders";
+    public static final String OPEN_PARTIES_AND_CLAIMS_MOD_ID = "openpartiesandclaims";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     /** Globally accessible config instance. Reloaded via /undeadriders reload. */
     public static UndeadRidersConfig CONFIG;
