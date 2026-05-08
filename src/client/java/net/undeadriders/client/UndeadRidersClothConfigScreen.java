@@ -53,6 +53,16 @@ final class UndeadRidersClothConfigScreen {
             .setTooltip(Component.literal("Enable Stray Horseman spawns in frozen biomes."))
             .setSaveConsumer(value -> config.strayHorsemanEnabled = value)
             .build());
+        horsemen.addEntry(entries.startBooleanToggle(Component.literal("Skeleton Horse Sunlight Burn"), config.skeletonHorseSunlightBurnEnabled)
+            .setDefaultValue(false)
+            .setTooltip(Component.literal("If enabled, Skeleton Horses burn when exposed to sunlight."))
+            .setSaveConsumer(value -> config.skeletonHorseSunlightBurnEnabled = value)
+            .build());
+        horsemen.addEntry(entries.startBooleanToggle(Component.literal("Saddled Skeleton Horse Sunlight Protection"), config.saddledSkeletonHorsesAvoidSunlightBurn)
+            .setDefaultValue(false)
+            .setTooltip(Component.literal("If enabled, saddled Skeleton Horses do not burn from the sunlight burn option."))
+            .setSaveConsumer(value -> config.saddledSkeletonHorsesAvoidSunlightBurn = value)
+            .build());
 
         ConfigCategory spawnRates = builder.getOrCreateCategory(Component.literal("Spawn Rates"));
         spawnRates.addEntry(entries.startFloatField(Component.literal("Zombie Horseman Spawn Rate"), config.zombieHorsemanSpawnRate)

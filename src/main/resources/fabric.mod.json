@@ -29,7 +29,9 @@
     ]
   },
 
-  "mixins": [],
+  "mixins": [
+    "undeadriders.mixins.json"
+  ],
 
   "depends": {
     "fabricloader": ">=0.19.2",

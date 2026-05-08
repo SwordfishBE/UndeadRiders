@@ -5,7 +5,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/SwordfishBE/UndeadRiders?display_name=release&logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SwordfishBE/UndeadRiders/total?logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/JVLPDceE?logo=modrinth&logoColor=white&label=Modrinth%20downloads)](https://modrinth.com/mod/undeadriders)
-[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1489518?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/leashed-teleport)
+[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1489518?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/undead-riders)
 
 ---
 
@@ -18,6 +18,7 @@
 - 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. Swamp and Mangrove Swamp only. Night only.
 - ❄️ **Stray Horseman** — Stray on a Skeleton Horse. All frozen biomes. Night only.
 - 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 30% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
+- 🔥 **Optional Skeleton Horse sunlight burn** — Skeleton Horses can be configured to burn in sunlight. A separate option can make saddled Skeleton Horses protected from that sunlight burn.
 - 🛡️ **Horse armor** — ZombieHorses have a configurable chance to wear armor (default 30%).
 - 🔑 **Tameable Skeleton Horses** — After killing the rider, Skeleton Horses can immediately be saddled and ridden.
 - 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield.
@@ -92,6 +93,8 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 | `parchedHorsemanEnabled`      | `true`  | Enable Parched Horseman (desert) |
 | `boggedHorsemanEnabled`       | `true`  | Enable Bogged Horseman (swamp) |
 | `strayHorsemanEnabled`        | `true`  | Enable Stray Horseman (frozen biomes) |
+| `skeletonHorseSunlightBurnEnabled` | `false` | If enabled, Skeleton Horses burn when exposed to sunlight |
+| `saddledSkeletonHorsesAvoidSunlightBurn` | `false` | If enabled, saddled Skeleton Horses are protected from the sunlight burn option until the saddle is removed |
 | `zombieHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `huskHorsemanSpawnRate`       | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `skeletonHorsemanSpawnRate`   | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
@@ -126,6 +129,8 @@ Claims that have hostile natural spawning disabled, for example through OPAC's "
   "parchedHorsemanEnabled": true,  // Enable Parched Horseman. Desert biomes only.
   "boggedHorsemanEnabled": true,   // Enable Bogged Horseman. Swamp and Mangrove Swamp only.
   "strayHorsemanEnabled": true,    // Enable Stray Horseman. Frozen biomes only.
+  "skeletonHorseSunlightBurnEnabled": false, // If true, Skeleton Horses burn when exposed to sunlight.
+  "saddledSkeletonHorsesAvoidSunlightBurn": false, // If true, saddled Skeleton Horses do not burn from the sunlight burn option.
 
   "zombieHorsemanSpawnRate": 0.15,   // Zombie Horseman spawn chance per attempt.
   "huskHorsemanSpawnRate": 0.15,     // Husk Horseman spawn chance per attempt.

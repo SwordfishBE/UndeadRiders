@@ -27,6 +27,10 @@ public class UndeadRidersConfig {
     public boolean boggedHorsemanEnabled   = true;
     /** Frozen biomes only. */
     public boolean strayHorsemanEnabled    = true;
+    /** If true, Skeleton Horses burn when exposed to sunlight. */
+    public boolean skeletonHorseSunlightBurnEnabled = false;
+    /** If true, saddled Skeleton Horses are protected from the sunlight burn option. */
+    public boolean saddledSkeletonHorsesAvoidSunlightBurn = false;
 
     // ── Spawn rates (0.0 – 1.0) ───────────────────────────────────────────────
     public float zombieHorsemanSpawnRate   = 0.15f;
@@ -144,6 +148,8 @@ public class UndeadRidersConfig {
         appendBoolean(sb, "parchedHorsemanEnabled", parchedHorsemanEnabled, "Enable Parched Horseman. Desert biomes only.");
         appendBoolean(sb, "boggedHorsemanEnabled", boggedHorsemanEnabled, "Enable Bogged Horseman. Swamp and Mangrove Swamp only.");
         appendBoolean(sb, "strayHorsemanEnabled", strayHorsemanEnabled, "Enable Stray Horseman. Frozen biomes only.");
+        appendBoolean(sb, "skeletonHorseSunlightBurnEnabled", skeletonHorseSunlightBurnEnabled, "If true, Skeleton Horses burn when exposed to sunlight.");
+        appendBoolean(sb, "saddledSkeletonHorsesAvoidSunlightBurn", saddledSkeletonHorsesAvoidSunlightBurn, "If true, saddled Skeleton Horses do not burn from the sunlight burn option.");
         sb.append('\n');
 
         appendComment(sb, "Spawn chance per attempt. Range: 0.0 to 1.0.");

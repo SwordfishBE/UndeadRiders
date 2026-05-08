@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "net.undeadriders.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "SkeletonHorseSunlightMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
