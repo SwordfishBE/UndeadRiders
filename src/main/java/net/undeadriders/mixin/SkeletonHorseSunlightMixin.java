@@ -2,10 +2,12 @@ package net.undeadriders.mixin;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.animal.equine.SkeletonHorse;
+import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.level.Level;
 import net.undeadriders.UndeadRiders;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,7 +26,7 @@ abstract class SkeletonHorseSunlightMixin extends AbstractHorse {
         if (UndeadRiders.CONFIG == null || !UndeadRiders.CONFIG.skeletonHorseSunlightBurnEnabled) {
             return;
         }
-        if (((SkeletonHorse) (Object) this).isTrap()) {
+        if (undeadriders$isVanillaSkeletonTrapHorseman()) {
             if (undeadriders$isSunBurnTick()) {
                 extinguishFire();
             }
@@ -60,5 +62,14 @@ abstract class SkeletonHorseSunlightMixin extends AbstractHorse {
             && getRandom().nextFloat() * 30.0f < (brightness - 0.4f) * 2.0f
             && !protectedByWaterOrSnow
             && level().canSeeSky(eyePos);
+    }
+
+    private boolean undeadriders$isVanillaSkeletonTrapHorseman() {
+        if (((SkeletonHorse) (Object) this).isTrap()) {
+            return true;
+        }
+
+        Entity passenger = getFirstPassenger();
+        return passenger instanceof Skeleton skeleton && skeleton.isPersistenceRequired();
     }
 }

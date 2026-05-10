@@ -20,7 +20,7 @@
 - 🐗 **Zombified Piglin Rider** — Zombified Piglin on a Zoglin. Crimson Forest, Nether Wastes, and Bastion Remnants.
 - 💀 **Nether Skeleton Horseman** — Skeleton on a Skeleton Horse. Soul Sand Valley only.
 - 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 30% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
-- 🔥 **Optional Skeleton Horse sunlight burn** — Skeleton Horses can be configured to burn in sunlight. A separate option can make saddled Skeleton Horses protected from that sunlight burn. Vanilla Skeleton Horse traps are always excluded so the trap can still trigger.
+- 🔥 **Optional Skeleton Horse sunlight burn** — Skeleton Horses can be configured to burn in sunlight. A separate option can make saddled Skeleton Horses protected from that sunlight burn. Vanilla Skeleton Horse traps and their triggered horsemen are always excluded.
 - 🛡️ **Horse armor** — ZombieHorses have a configurable chance to wear armor (default 30%).
 - 🔑 **Tameable Skeleton Horses** — After killing the rider, Skeleton Horses can immediately be saddled and ridden.
 - 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield.
