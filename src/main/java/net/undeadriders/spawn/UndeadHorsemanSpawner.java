@@ -12,12 +12,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Zoglin;
 import net.minecraft.world.entity.monster.skeleton.Bogged;
 import net.minecraft.world.entity.monster.skeleton.Parched;
 import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.entity.monster.skeleton.Stray;
 import net.minecraft.world.entity.monster.zombie.Husk;
 import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.entity.monster.zombie.ZombifiedPiglin;
 import net.minecraft.world.entity.animal.equine.SkeletonHorse;
 import net.minecraft.world.entity.animal.equine.ZombieHorse;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +29,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.fabricmc.loader.api.FabricLoader;
 import net.undeadriders.UndeadRiders;
 import net.undeadriders.compat.OpenPartiesAndClaimsCompat;
@@ -46,14 +51,16 @@ import java.util.Random;
  *   <li><b>Parched Horseman</b> — SkeletonHorse + Parched. Desert only. Day &amp; night.</li>
  *   <li><b>Bogged Horseman</b>  — SkeletonHorse + Bogged.  Swamp &amp; Mangrove Swamp. Night only.</li>
  *   <li><b>Stray Horseman</b>   — SkeletonHorse + Stray.   All frozen biomes. Night only.</li>
+ *   <li><b>Zombified Piglin Rider</b> — Zoglin + Zombified Piglin. Nether Wastes, Crimson Forest, Bastion Remnants.</li>
+ *   <li><b>Nether Skeleton Horseman</b> — SkeletonHorse + Skeleton. Soul Sand Valley only.</li>
  * </ul>
  *
  * <h3>Saddle</h3>
- * Horses only spawn with a saddle at the configured rate (default 15% zombie, 10% skeleton).
+ * Horses only spawn with a saddle at the configured rate (default 15% zombie, 30% skeleton).
  * When a saddle is present it uses a looting-aware drop chance.
  *
  * <h3>Horse armor</h3>
- * ZombieHorse has a configurable chance to wear armor (default 60%).
+ * ZombieHorse has a configurable chance to wear armor (default 30%).
  * At 0% armor never spawns; at 100% armor always spawns.
  *
  * <h3>Hard difficulty extras</h3>
@@ -77,28 +84,45 @@ import java.util.Random;
 public class UndeadHorsemanSpawner {
 
     private static final Random RANDOM = new Random();
-    private static int tickCounter = 0;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Tick entry point
     // ─────────────────────────────────────────────────────────────────────────
 
     public static void onWorldTick(ServerLevel world) {
-        if (!world.dimension().equals(Level.OVERWORLD)) return;
+        if (!world.dimension().equals(Level.OVERWORLD) && !world.dimension().equals(Level.NETHER)) return;
         if (world.getDifficulty() == Difficulty.PEACEFUL) return;
 
-        tickCounter++;
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
 
-        boolean anyEnabled = cfg.zombieHorsemanEnabled || cfg.huskHorsemanEnabled
-            || cfg.skeletonHorsemanEnabled || cfg.parchedHorsemanEnabled
-            || cfg.boggedHorsemanEnabled   || cfg.strayHorsemanEnabled;
+        boolean anyEnabled = world.dimension().equals(Level.OVERWORLD)
+            ? hasOverworldSpawnsEnabled(cfg)
+            : hasNetherSpawnsEnabled(cfg);
         if (!anyEnabled) return;
-        if (tickCounter % cfg.spawnCheckIntervalTicks != 0) return;
+        if (world.getGameTime() % cfg.spawnCheckIntervalTicks != 0) return;
 
         List<ServerPlayer> players = world.players();
         if (players.isEmpty()) return;
 
+        if (world.dimension().equals(Level.NETHER)) {
+            spawnNetherRiders(world, players, cfg);
+            return;
+        }
+
+        spawnOverworldRiders(world, players, cfg);
+    }
+
+    private static boolean hasOverworldSpawnsEnabled(UndeadRidersConfig cfg) {
+        return cfg.zombieHorsemanEnabled || cfg.huskHorsemanEnabled
+            || cfg.skeletonHorsemanEnabled || cfg.parchedHorsemanEnabled
+            || cfg.boggedHorsemanEnabled || cfg.strayHorsemanEnabled;
+    }
+
+    private static boolean hasNetherSpawnsEnabled(UndeadRidersConfig cfg) {
+        return cfg.zombifiedPiglinRiderEnabled || cfg.netherSkeletonHorsemanEnabled;
+    }
+
+    private static void spawnOverworldRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
         // ZombieHorse/SkeletonHorse don't spawn naturally — count all
         // Husk/Parched/Bogged/Stray do spawn naturally — count only mounted ones
         long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityType.ZOMBIE_HORSE)   : 0;
@@ -152,11 +176,33 @@ public class UndeadHorsemanSpawner {
         }
     }
 
+    private static void spawnNetherRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
+        long existingPiglin = cfg.zombifiedPiglinRiderEnabled ? countMounted(world, EntityType.ZOMBIFIED_PIGLIN) : 0;
+        long existingSkeleton = cfg.netherSkeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE) : 0;
+        long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
+
+        for (ServerPlayer player : players) {
+            for (int attempt = 0; attempt < cfg.spawnAttemptsPerPlayer; attempt++) {
+                if (cfg.zombifiedPiglinRiderEnabled && existingPiglin < cap
+                        && RANDOM.nextFloat() < cfg.zombifiedPiglinRiderSpawnRate) {
+                    BlockPos pos = findNetherPos(world, player, cfg, BiomeFilter.NETHER_PIGLIN);
+                    if (pos != null) { spawnZombifiedPiglinRider(world, pos); existingPiglin++; }
+                }
+
+                if (cfg.netherSkeletonHorsemanEnabled && existingSkeleton < cap
+                        && RANDOM.nextFloat() < cfg.netherSkeletonHorsemanSpawnRate) {
+                    BlockPos pos = findNetherPos(world, player, cfg, BiomeFilter.NETHER_SKELETON);
+                    if (pos != null) { spawnNetherSkeletonHorseman(world, pos); existingSkeleton++; }
+                }
+            }
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Biome filter
     // ─────────────────────────────────────────────────────────────────────────
 
-    private enum BiomeFilter { ZOMBIE, SKELETON, DESERT, HUSK, SWAMP, FROZEN }
+    private enum BiomeFilter { ZOMBIE, SKELETON, DESERT, HUSK, SWAMP, FROZEN, NETHER_PIGLIN, NETHER_SKELETON }
 
     private static boolean matchesBiome(ServerLevel world, BlockPos pos, BiomeFilter filter) {
         Holder<Biome> biome = world.getBiome(pos);
@@ -191,6 +237,10 @@ public class UndeadHorsemanSpawner {
                           || biome.is(Biomes.FROZEN_OCEAN)
                           || biome.is(Biomes.DEEP_FROZEN_OCEAN)
                           || biome.is(Biomes.SNOWY_BEACH);
+            case NETHER_PIGLIN -> biome.is(Biomes.CRIMSON_FOREST)
+                          || biome.is(Biomes.NETHER_WASTES)
+                          || isInBastionRemnant(world, pos);
+            case NETHER_SKELETON -> biome.is(Biomes.SOUL_SAND_VALLEY);
             default       -> true;
         };
     }
@@ -228,6 +278,7 @@ public class UndeadHorsemanSpawner {
             if (!world.getBlockState(candidate).isAir()) continue;
             if (!world.getBlockState(candidate.above()).isAir()) continue;
             if (!world.getBlockState(candidate.above(2)).isAir()) continue;
+            if (!world.getBlockState(candidate.above(3)).isAir()) continue;
             if (!world.getFluidState(candidate).isEmpty()) continue;
             if (!world.getFluidState(candidate.below()).isEmpty()) continue;
             if (isBlockedByOpenPartiesAndClaims(world, candidate, cfg)) continue;
@@ -235,6 +286,73 @@ public class UndeadHorsemanSpawner {
             return candidate;
         }
         return null;
+    }
+
+    private static BlockPos findNetherPos(ServerLevel world, ServerPlayer player,
+                                           UndeadRidersConfig cfg, BiomeFilter filter) {
+        int minDist = cfg.minSpawnDistance;
+        int range = cfg.maxSpawnDistance - minDist;
+        int baseY = player.blockPosition().getY();
+        int minY = world.getMinY() + 2;
+        int maxY = world.getMaxY() - 3;
+
+        for (int attempt = 0; attempt < 32; attempt++) {
+            int offsetX = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
+            int offsetZ = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
+            int x = (int) player.getX() + offsetX;
+            int z = (int) player.getZ() + offsetZ;
+            int startY = clamp(baseY + RANDOM.nextInt(33) - 16, minY, maxY);
+
+            BlockPos candidate = findNearbyNetherFloor(world, x, startY, z, minY, maxY, 4);
+            if (candidate == null) continue;
+            if (!matchesBiome(world, candidate, filter)) continue;
+            if (isBlockedByOpenPartiesAndClaims(world, candidate, cfg)) continue;
+
+            return candidate;
+        }
+        return null;
+    }
+
+    private static BlockPos findNearbyNetherFloor(ServerLevel world, int x, int startY, int z, int minY, int maxY, int airHeight) {
+        for (int radius = 0; radius <= 12; radius++) {
+            BlockPos down = new BlockPos(x, startY - radius, z);
+            if (startY - radius >= minY && isValidSpawnSpace(world, down, airHeight)) {
+                return down;
+            }
+
+            BlockPos up = new BlockPos(x, startY + radius, z);
+            if (radius > 0 && startY + radius <= maxY && isValidSpawnSpace(world, up, airHeight)) {
+                return up;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isValidSpawnSpace(ServerLevel world, BlockPos pos, int airHeight) {
+        if (!world.getBlockState(pos.below()).isSolid() || !world.getFluidState(pos.below()).isEmpty()) {
+            return false;
+        }
+
+        for (int y = 0; y < airHeight; y++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    BlockPos checkPos = pos.offset(x, y, z);
+                    if (!world.getBlockState(checkPos).isAir() || !world.getFluidState(checkPos).isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean isInBastionRemnant(ServerLevel world, BlockPos pos) {
+        Structure bastion = world.registryAccess()
+            .lookupOrThrow(Registries.STRUCTURE)
+            .getOrThrow(BuiltinStructures.BASTION_REMNANT)
+            .value();
+        StructureStart start = world.structureManager().getStructureWithPieceAt(pos, bastion);
+        return start.isValid();
     }
 
     private static boolean isBlockedByOpenPartiesAndClaims(ServerLevel world, BlockPos pos, UndeadRidersConfig cfg) {
@@ -258,11 +376,14 @@ public class UndeadHorsemanSpawner {
         if (horse == null) return;
         placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
         horse.setTamed(false);
+        boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
+        horse.setBaby(babyVariant);
         applyZombieHorseEquipment(horse, world.getDifficulty(), cfg.zombieHorseArmorChance);
 
         Zombie zombie = EntityType.ZOMBIE.create(world, EntitySpawnReason.NATURAL);
         if (zombie == null) { horse.discard(); return; }
         zombie.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        zombie.setBaby(babyVariant);
         applyZombieWeapon(zombie, world.getDifficulty());
         applyShieldOnHard(zombie, world.getDifficulty());
 
@@ -281,11 +402,14 @@ public class UndeadHorsemanSpawner {
         if (horse == null) return;
         placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
         horse.setTamed(false);
+        boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
+        horse.setBaby(babyVariant);
         applyZombieHorseEquipment(horse, world.getDifficulty(), cfg.zombieHorseArmorChance);
 
         Husk husk = EntityType.HUSK.create(world, EntitySpawnReason.NATURAL);
         if (husk == null) { horse.discard(); return; }
         husk.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        husk.setBaby(babyVariant);
         applyZombieWeapon(husk, world.getDifficulty());
         applyShieldOnHard(husk, world.getDifficulty());
 
@@ -384,6 +508,52 @@ public class UndeadHorsemanSpawner {
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Stray Horseman at {}", pos);
     }
 
+    private static void spawnZombifiedPiglinRider(ServerLevel world, BlockPos pos) {
+        UndeadRidersConfig cfg = UndeadRiders.CONFIG;
+        DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
+        boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
+
+        Zoglin zoglin = EntityType.ZOGLIN.create(world, EntitySpawnReason.NATURAL);
+        if (zoglin == null) return;
+        zoglin.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        zoglin.setYRot(RANDOM.nextFloat() * 360f);
+        zoglin.setBaby(babyVariant);
+
+        ZombifiedPiglin piglin = EntityType.ZOMBIFIED_PIGLIN.create(world, EntitySpawnReason.NATURAL);
+        if (piglin == null) { zoglin.discard(); return; }
+        placeRider(piglin, world, pos, localDiff);
+        piglin.setBaby(babyVariant);
+
+        world.addFreshEntity(zoglin);
+        world.addFreshEntity(piglin);
+        if (!piglin.startRiding(zoglin, true, true)) {
+            zoglin.discard(); piglin.discard(); return;
+        }
+        UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Zombified Piglin Rider at {}", pos);
+    }
+
+    private static void spawnNetherSkeletonHorseman(ServerLevel world, BlockPos pos) {
+        UndeadRidersConfig cfg = UndeadRiders.CONFIG;
+        DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
+
+        SkeletonHorse horse = EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
+        if (horse == null) return;
+        placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
+        horse.setTamed(true);
+
+        Skeleton skeleton = EntityType.SKELETON.create(world, EntitySpawnReason.NATURAL);
+        if (skeleton == null) { horse.discard(); return; }
+        placeRider(skeleton, world, pos, localDiff);
+        applyEnchantedBowOnHard(skeleton, world);
+
+        world.addFreshEntity(horse);
+        world.addFreshEntity(skeleton);
+        if (!skeleton.startRiding(horse, true, true)) {
+            horse.discard(); skeleton.discard(); return;
+        }
+        UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Nether Skeleton Horseman at {}", pos);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Shared helpers
     // ─────────────────────────────────────────────────────────────────────────
@@ -403,6 +573,14 @@ public class UndeadHorsemanSpawner {
             horse.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
             horse.setDropChance(EquipmentSlot.SADDLE, 0.1f);
         }
+    }
+
+    private static boolean shouldSpawnBabyUndeadRider(UndeadRidersConfig cfg) {
+        return cfg.babyUndeadRiderChance > 0f && RANDOM.nextFloat() < cfg.babyUndeadRiderChance;
+    }
+
+    private static int clamp(int v, int min, int max) {
+        return Math.max(min, Math.min(max, v));
     }
 
     /** Positions a rider and lets vanilla finalizeSpawn handle equipment/enchants. */
@@ -507,7 +685,7 @@ public class UndeadHorsemanSpawner {
      * Drop chance 0%.
      */
     private static void applyShieldOnHard(Zombie zombie, Difficulty difficulty) {
-        if (difficulty == Difficulty.HARD && RANDOM.nextFloat() < 0.4f) {
+        if (!zombie.isBaby() && difficulty == Difficulty.HARD && RANDOM.nextFloat() < 0.4f) {
             zombie.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
             zombie.setDropChance(EquipmentSlot.OFFHAND, 0.0f);
         }

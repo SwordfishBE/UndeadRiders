@@ -64,6 +64,18 @@ final class UndeadRidersClothConfigScreen {
             .setSaveConsumer(value -> config.saddledSkeletonHorsesAvoidSunlightBurn = value)
             .build());
 
+        ConfigCategory netherRiders = builder.getOrCreateCategory(Component.literal("Nether Riders"));
+        netherRiders.addEntry(entries.startBooleanToggle(Component.literal("Zombified Piglin Rider"), config.zombifiedPiglinRiderEnabled)
+            .setDefaultValue(true)
+            .setTooltip(Component.literal("Enable Zombified Piglin Riders in Crimson Forest, Nether Wastes, and Bastion Remnants."))
+            .setSaveConsumer(value -> config.zombifiedPiglinRiderEnabled = value)
+            .build());
+        netherRiders.addEntry(entries.startBooleanToggle(Component.literal("Nether Skeleton Horseman"), config.netherSkeletonHorsemanEnabled)
+            .setDefaultValue(true)
+            .setTooltip(Component.literal("Enable Skeleton Horsemen in Soul Sand Valley."))
+            .setSaveConsumer(value -> config.netherSkeletonHorsemanEnabled = value)
+            .build());
+
         ConfigCategory spawnRates = builder.getOrCreateCategory(Component.literal("Spawn Rates"));
         spawnRates.addEntry(entries.startFloatField(Component.literal("Zombie Horseman Spawn Rate"), config.zombieHorsemanSpawnRate)
             .setDefaultValue(0.15f)
@@ -106,6 +118,27 @@ final class UndeadRidersClothConfigScreen {
             .setMax(1.0f)
             .setTooltip(Component.literal("Spawn chance per attempt for Stray Horsemen."))
             .setSaveConsumer(value -> config.strayHorsemanSpawnRate = value)
+            .build());
+        spawnRates.addEntry(entries.startFloatField(Component.literal("Zombified Piglin Rider Spawn Rate"), config.zombifiedPiglinRiderSpawnRate)
+            .setDefaultValue(0.30f)
+            .setMin(0.0f)
+            .setMax(1.0f)
+            .setTooltip(Component.literal("Spawn chance per attempt for Zombified Piglin Riders."))
+            .setSaveConsumer(value -> config.zombifiedPiglinRiderSpawnRate = value)
+            .build());
+        spawnRates.addEntry(entries.startFloatField(Component.literal("Nether Skeleton Horseman Spawn Rate"), config.netherSkeletonHorsemanSpawnRate)
+            .setDefaultValue(0.15f)
+            .setMin(0.0f)
+            .setMax(1.0f)
+            .setTooltip(Component.literal("Spawn chance per attempt for Nether Skeleton Horsemen."))
+            .setSaveConsumer(value -> config.netherSkeletonHorsemanSpawnRate = value)
+            .build());
+        spawnRates.addEntry(entries.startFloatField(Component.literal("Baby Undead Rider Chance"), config.babyUndeadRiderChance)
+            .setDefaultValue(0.05f)
+            .setMin(0.0f)
+            .setMax(1.0f)
+            .setTooltip(Component.literal("Chance supported undead riders spawn as baby variants."))
+            .setSaveConsumer(value -> config.babyUndeadRiderChance = value)
             .build());
 
         ConfigCategory equipment = builder.getOrCreateCategory(Component.literal("Equipment"));

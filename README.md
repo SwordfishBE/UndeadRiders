@@ -17,11 +17,14 @@
 - ☀️ **Parched Horseman** — Parched on a Skeleton Horse. Desert only. Day and night.
 - 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. Swamp and Mangrove Swamp only. Night only.
 - ❄️ **Stray Horseman** — Stray on a Skeleton Horse. All frozen biomes. Night only.
+- 🐗 **Zombified Piglin Rider** — Zombified Piglin on a Zoglin. Crimson Forest, Nether Wastes, and Bastion Remnants.
+- 💀 **Nether Skeleton Horseman** — Skeleton on a Skeleton Horse. Soul Sand Valley only.
 - 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 30% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
-- 🔥 **Optional Skeleton Horse sunlight burn** — Skeleton Horses can be configured to burn in sunlight. A separate option can make saddled Skeleton Horses protected from that sunlight burn.
+- 🔥 **Optional Skeleton Horse sunlight burn** — Skeleton Horses can be configured to burn in sunlight. A separate option can make saddled Skeleton Horses protected from that sunlight burn. Vanilla Skeleton Horse traps are always excluded so the trap can still trigger.
 - 🛡️ **Horse armor** — ZombieHorses have a configurable chance to wear armor (default 30%).
 - 🔑 **Tameable Skeleton Horses** — After killing the rider, Skeleton Horses can immediately be saddled and ridden.
 - 🛡️ **Shield on Hard** — Zombie and Husk riders have a 40% chance to carry a shield.
+- 👶 **Rare baby variants** — Supported riders can rarely spawn as baby variants, using the same biome rules as their adult versions.
 - 🏹 **Enchanted bow on Hard** — Skeleton, Parched and Stray riders have a 30% chance for a Power I–III bow.
 - ⚠️ **Unarmed on Easy** — Zombie and Husk riders have a 25% chance to spawn without a weapon.
 - ⚔️ **Difficulty-scaled weapons** — Zombie/Husk riders carry tier-appropriate weapons including spears introduced in modern Minecraft versions.
@@ -73,6 +76,8 @@ Rider equipment handled by vanilla's `finalizeSpawn()`. On **Hard**: 30% chance 
 | Parched Horseman | Desert |
 | Bogged Horseman | Swamp, Mangrove Swamp |
 | Stray Horseman | Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes, Frozen Ocean, Deep Frozen Ocean, Snowy Beach |
+| Zombified Piglin Rider | Crimson Forest, Nether Wastes, Bastion Remnants |
+| Nether Skeleton Horseman | Soul Sand Valley |
 
 ---
 
@@ -95,12 +100,17 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 | `strayHorsemanEnabled`        | `true`  | Enable Stray Horseman (frozen biomes) |
 | `skeletonHorseSunlightBurnEnabled` | `false` | If enabled, Skeleton Horses burn when exposed to sunlight |
 | `saddledSkeletonHorsesAvoidSunlightBurn` | `false` | If enabled, saddled Skeleton Horses are protected from the sunlight burn option until the saddle is removed |
+| `zombifiedPiglinRiderEnabled` | `true`  | Enable Zombified Piglin Rider in Crimson Forest, Nether Wastes, and Bastion Remnants |
+| `netherSkeletonHorsemanEnabled` | `true` | Enable Nether Skeleton Horseman in Soul Sand Valley |
 | `zombieHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `huskHorsemanSpawnRate`       | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `skeletonHorsemanSpawnRate`   | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `parchedHorsemanSpawnRate`    | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `boggedHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `strayHorsemanSpawnRate`      | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `zombifiedPiglinRiderSpawnRate` | `0.30` | Spawn chance per attempt, `0.0`–`1.0` |
+| `netherSkeletonHorsemanSpawnRate` | `0.15` | Spawn chance per attempt, `0.0`–`1.0` |
+| `babyUndeadRiderChance`       | `0.05`  | Chance supported undead riders spawn as baby variants. `0.0` = never |
 | `zombieHorseSaddleChance`     | `0.15`  | Chance a ZombieHorse spawns with a saddle. `0.0` = never |
 | `skeletonHorseSaddleChance`   | `0.30`  | Chance a SkeletonHorse spawns with a saddle. `0.0` = never |
 | `zombieHorseArmorChance`      | `0.30`  | Chance a ZombieHorse spawns wearing armor. `0.0` = never |
@@ -131,6 +141,8 @@ Claims that have hostile natural spawning disabled, for example through OPAC's "
   "strayHorsemanEnabled": true,    // Enable Stray Horseman. Frozen biomes only.
   "skeletonHorseSunlightBurnEnabled": false, // If true, Skeleton Horses burn when exposed to sunlight.
   "saddledSkeletonHorsesAvoidSunlightBurn": false, // If true, saddled Skeleton Horses do not burn from the sunlight burn option.
+  "zombifiedPiglinRiderEnabled": true, // Enable Zombified Piglin Rider in Crimson Forest, Nether Wastes, and Bastion Remnants.
+  "netherSkeletonHorsemanEnabled": true, // Enable Nether Skeleton Horseman in Soul Sand Valley.
 
   "zombieHorsemanSpawnRate": 0.15,   // Zombie Horseman spawn chance per attempt.
   "huskHorsemanSpawnRate": 0.15,     // Husk Horseman spawn chance per attempt.
@@ -138,6 +150,9 @@ Claims that have hostile natural spawning disabled, for example through OPAC's "
   "parchedHorsemanSpawnRate": 0.1,   // Parched Horseman spawn chance per attempt.
   "boggedHorsemanSpawnRate": 0.15,   // Bogged Horseman spawn chance per attempt.
   "strayHorsemanSpawnRate": 0.1,     // Stray Horseman spawn chance per attempt.
+  "zombifiedPiglinRiderSpawnRate": 0.3, // Zombified Piglin Rider spawn chance per attempt.
+  "netherSkeletonHorsemanSpawnRate": 0.15, // Nether Skeleton Horseman spawn chance per attempt.
+  "babyUndeadRiderChance": 0.05,     // Chance supported undead riders spawn as baby variants.
 
   "zombieHorseSaddleChance": 0.15,   // Chance a Zombie Horse spawns with a saddle.
   "skeletonHorseSaddleChance": 0.3,  // Chance a Skeleton Horse spawns with a saddle.

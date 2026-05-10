@@ -98,6 +98,8 @@ public class UndeadRiders implements ModInitializer {
                                 "§eParched Horseman §r" + status(cfg.parchedHorsemanEnabled)  + " §7rate=" + cfg.parchedHorsemanSpawnRate  + "\n" +
                                 "§eBogged Horseman  §r" + status(cfg.boggedHorsemanEnabled)   + " §7rate=" + cfg.boggedHorsemanSpawnRate   + "\n" +
                                 "§eStray Horseman   §r" + status(cfg.strayHorsemanEnabled)    + " §7rate=" + cfg.strayHorsemanSpawnRate    + "\n" +
+                                "§eZombified Piglin Rider §r" + status(cfg.zombifiedPiglinRiderEnabled) + " §7rate=" + cfg.zombifiedPiglinRiderSpawnRate + "\n" +
+                                "§eNether Skeleton Horseman§r" + status(cfg.netherSkeletonHorsemanEnabled) + " §7rate=" + cfg.netherSkeletonHorsemanSpawnRate + "\n" +
                                 "§7Attempts/player: §f" + cfg.spawnAttemptsPerPlayer +
                                 " §7| Interval: §f" + cfg.spawnCheckIntervalTicks + " ticks\n" +
                                 "§7Cap: §f" + cap + " §7per type (" + players + " player(s) × " + cfg.maxHorsemenPerPlayer + ")"

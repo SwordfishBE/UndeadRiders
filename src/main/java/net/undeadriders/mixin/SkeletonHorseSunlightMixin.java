@@ -24,6 +24,12 @@ abstract class SkeletonHorseSunlightMixin extends AbstractHorse {
         if (UndeadRiders.CONFIG == null || !UndeadRiders.CONFIG.skeletonHorseSunlightBurnEnabled) {
             return;
         }
+        if (((SkeletonHorse) (Object) this).isTrap()) {
+            if (undeadriders$isSunBurnTick()) {
+                extinguishFire();
+            }
+            return;
+        }
         if (UndeadRiders.CONFIG.saddledSkeletonHorsesAvoidSunlightBurn
             && !getItemBySlot(EquipmentSlot.SADDLE).isEmpty()) {
             if (undeadriders$isSunBurnTick()) {

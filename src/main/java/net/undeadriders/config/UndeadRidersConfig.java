@@ -31,6 +31,10 @@ public class UndeadRidersConfig {
     public boolean skeletonHorseSunlightBurnEnabled = false;
     /** If true, saddled Skeleton Horses are protected from the sunlight burn option. */
     public boolean saddledSkeletonHorsesAvoidSunlightBurn = false;
+    /** Nether only. */
+    public boolean zombifiedPiglinRiderEnabled = true;
+    /** Nether only, Soul Sand Valley. */
+    public boolean netherSkeletonHorsemanEnabled = true;
 
     // ── Spawn rates (0.0 – 1.0) ───────────────────────────────────────────────
     public float zombieHorsemanSpawnRate   = 0.15f;
@@ -39,6 +43,16 @@ public class UndeadRidersConfig {
     public float parchedHorsemanSpawnRate  = 0.1f;
     public float boggedHorsemanSpawnRate   = 0.15f;
     public float strayHorsemanSpawnRate    = 0.1f;
+    public float zombifiedPiglinRiderSpawnRate = 0.3f;
+    public float netherSkeletonHorsemanSpawnRate = 0.15f;
+
+    // ── Rare variants ────────────────────────────────────────────────────────
+    /**
+     * Chance (0.0–1.0) that supported undead riders spawn as baby variants.
+     * Uses the same biome logic as the base type.
+     * Default: 0.05 (5%)
+     */
+    public float babyUndeadRiderChance  = 0.05f;
 
     // ── Saddle spawn chances ──────────────────────────────────────────────────
     /**
@@ -150,6 +164,8 @@ public class UndeadRidersConfig {
         appendBoolean(sb, "strayHorsemanEnabled", strayHorsemanEnabled, "Enable Stray Horseman. Frozen biomes only.");
         appendBoolean(sb, "skeletonHorseSunlightBurnEnabled", skeletonHorseSunlightBurnEnabled, "If true, Skeleton Horses burn when exposed to sunlight.");
         appendBoolean(sb, "saddledSkeletonHorsesAvoidSunlightBurn", saddledSkeletonHorsesAvoidSunlightBurn, "If true, saddled Skeleton Horses do not burn from the sunlight burn option.");
+        appendBoolean(sb, "zombifiedPiglinRiderEnabled", zombifiedPiglinRiderEnabled, "Enable Zombified Piglin Rider in Crimson Forest, Nether Wastes, and Bastion Remnants.");
+        appendBoolean(sb, "netherSkeletonHorsemanEnabled", netherSkeletonHorsemanEnabled, "Enable Nether Skeleton Horseman in Soul Sand Valley.");
         sb.append('\n');
 
         appendComment(sb, "Spawn chance per attempt. Range: 0.0 to 1.0.");
@@ -159,6 +175,12 @@ public class UndeadRidersConfig {
         appendFloat(sb, "parchedHorsemanSpawnRate", parchedHorsemanSpawnRate, "Parched Horseman spawn chance per attempt.");
         appendFloat(sb, "boggedHorsemanSpawnRate", boggedHorsemanSpawnRate, "Bogged Horseman spawn chance per attempt.");
         appendFloat(sb, "strayHorsemanSpawnRate", strayHorsemanSpawnRate, "Stray Horseman spawn chance per attempt.");
+        appendFloat(sb, "zombifiedPiglinRiderSpawnRate", zombifiedPiglinRiderSpawnRate, "Zombified Piglin Rider spawn chance per attempt.");
+        appendFloat(sb, "netherSkeletonHorsemanSpawnRate", netherSkeletonHorsemanSpawnRate, "Nether Skeleton Horseman spawn chance per attempt.");
+        sb.append('\n');
+
+        appendComment(sb, "Rare variant chances. Range: 0.0 to 1.0.");
+        appendFloat(sb, "babyUndeadRiderChance", babyUndeadRiderChance, "Chance supported undead riders spawn as baby variants.");
         sb.append('\n');
 
         appendComment(sb, "Saddle spawn chances. Range: 0.0 to 1.0.");
@@ -231,6 +253,9 @@ public class UndeadRidersConfig {
         parchedHorsemanSpawnRate   = clamp(parchedHorsemanSpawnRate,   0f, 1f);
         boggedHorsemanSpawnRate    = clamp(boggedHorsemanSpawnRate,    0f, 1f);
         strayHorsemanSpawnRate     = clamp(strayHorsemanSpawnRate,     0f, 1f);
+        zombifiedPiglinRiderSpawnRate = clamp(zombifiedPiglinRiderSpawnRate, 0f, 1f);
+        netherSkeletonHorsemanSpawnRate = clamp(netherSkeletonHorsemanSpawnRate, 0f, 1f);
+        babyUndeadRiderChance      = clamp(babyUndeadRiderChance,      0f, 1f);
         zombieHorseSaddleChance    = clamp(zombieHorseSaddleChance,    0f, 1f);
         skeletonHorseSaddleChance  = clamp(skeletonHorseSaddleChance,  0f, 1f);
         zombieHorseArmorChance     = clamp(zombieHorseArmorChance,     0f, 1f);
