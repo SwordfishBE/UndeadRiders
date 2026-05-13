@@ -177,7 +177,9 @@ public class UndeadHorsemanSpawner {
     }
 
     private static void spawnNetherRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
-        long existingPiglin = cfg.zombifiedPiglinRiderEnabled ? countMounted(world, EntityType.ZOMBIFIED_PIGLIN) : 0;
+        long existingPiglin = cfg.zombifiedPiglinRiderEnabled
+            ? countMountedTagged(world, EntityType.ZOMBIFIED_PIGLIN, UndeadRiders.ZOGLIN_RIDER_TAG)
+            : 0;
         long existingSkeleton = cfg.netherSkeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE) : 0;
         long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
 
@@ -523,6 +525,8 @@ public class UndeadHorsemanSpawner {
         if (piglin == null) { zoglin.discard(); return; }
         placeRider(piglin, world, pos, localDiff);
         piglin.setBaby(babyVariant);
+        piglin.addTag(UndeadRiders.ZOGLIN_RIDER_TAG);
+        zoglin.addTag(UndeadRiders.ZOGLIN_RIDER_TAG);
 
         world.addFreshEntity(zoglin);
         world.addFreshEntity(piglin);
@@ -725,5 +729,11 @@ public class UndeadHorsemanSpawner {
     @SuppressWarnings("unchecked")
     private static long countMounted(ServerLevel world, EntityType<?> type) {
         return world.getEntities((EntityType<? extends Entity>) type, e -> e.isPassenger()).size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static long countMountedTagged(ServerLevel world, EntityType<?> type, String tag) {
+        return world.getEntities((EntityType<? extends Entity>) type,
+            e -> e.isPassenger() && e.entityTags().contains(tag)).size();
     }
 }
