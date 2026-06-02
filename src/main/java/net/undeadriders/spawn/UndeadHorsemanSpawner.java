@@ -9,6 +9,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.Monster;
@@ -125,12 +126,12 @@ public class UndeadHorsemanSpawner {
     private static void spawnOverworldRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
         // ZombieHorse/SkeletonHorse don't spawn naturally — count all
         // Husk/Parched/Bogged/Stray do spawn naturally — count only mounted ones
-        long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityType.ZOMBIE_HORSE)   : 0;
-        long existingHusk     = cfg.huskHorsemanEnabled     ? countMounted(world, EntityType.HUSK)             : 0;
-        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE)  : 0;
-        long existingParched  = cfg.parchedHorsemanEnabled  ? countMounted(world, EntityType.PARCHED)          : 0;
-        long existingBogged   = cfg.boggedHorsemanEnabled   ? countMounted(world, EntityType.BOGGED)           : 0;
-        long existingStray    = cfg.strayHorsemanEnabled    ? countMounted(world, EntityType.STRAY)            : 0;
+        long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityTypes.ZOMBIE_HORSE)   : 0;
+        long existingHusk     = cfg.huskHorsemanEnabled     ? countMounted(world, EntityTypes.HUSK)             : 0;
+        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countEntities(world, EntityTypes.SKELETON_HORSE)  : 0;
+        long existingParched  = cfg.parchedHorsemanEnabled  ? countMounted(world, EntityTypes.PARCHED)          : 0;
+        long existingBogged   = cfg.boggedHorsemanEnabled   ? countMounted(world, EntityTypes.BOGGED)           : 0;
+        long existingStray    = cfg.strayHorsemanEnabled    ? countMounted(world, EntityTypes.STRAY)            : 0;
 
         long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
 
@@ -178,9 +179,9 @@ public class UndeadHorsemanSpawner {
 
     private static void spawnNetherRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
         long existingPiglin = cfg.zombifiedPiglinRiderEnabled
-            ? countMountedTagged(world, EntityType.ZOMBIFIED_PIGLIN, UndeadRiders.ZOGLIN_RIDER_TAG)
+            ? countMountedTagged(world, EntityTypes.ZOMBIFIED_PIGLIN, UndeadRiders.ZOGLIN_RIDER_TAG)
             : 0;
-        long existingSkeleton = cfg.netherSkeletonHorsemanEnabled ? countEntities(world, EntityType.SKELETON_HORSE) : 0;
+        long existingSkeleton = cfg.netherSkeletonHorsemanEnabled ? countEntities(world, EntityTypes.SKELETON_HORSE) : 0;
         long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
 
         for (ServerPlayer player : players) {
@@ -374,7 +375,7 @@ public class UndeadHorsemanSpawner {
     private static void spawnZombieHorseman(ServerLevel world, BlockPos pos) {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
 
-        ZombieHorse horse = EntityType.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
+        ZombieHorse horse = EntityTypes.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
         horse.setTamed(false);
@@ -382,7 +383,7 @@ public class UndeadHorsemanSpawner {
         horse.setBaby(babyVariant);
         applyZombieHorseEquipment(horse, world.getDifficulty(), cfg.zombieHorseArmorChance);
 
-        Zombie zombie = EntityType.ZOMBIE.create(world, EntitySpawnReason.NATURAL);
+        Zombie zombie = EntityTypes.ZOMBIE.create(world, EntitySpawnReason.NATURAL);
         if (zombie == null) { horse.discard(); return; }
         zombie.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         zombie.setBaby(babyVariant);
@@ -400,7 +401,7 @@ public class UndeadHorsemanSpawner {
     private static void spawnHuskHorseman(ServerLevel world, BlockPos pos) {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
 
-        ZombieHorse horse = EntityType.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
+        ZombieHorse horse = EntityTypes.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
         horse.setTamed(false);
@@ -408,7 +409,7 @@ public class UndeadHorsemanSpawner {
         horse.setBaby(babyVariant);
         applyZombieHorseEquipment(horse, world.getDifficulty(), cfg.zombieHorseArmorChance);
 
-        Husk husk = EntityType.HUSK.create(world, EntitySpawnReason.NATURAL);
+        Husk husk = EntityTypes.HUSK.create(world, EntitySpawnReason.NATURAL);
         if (husk == null) { horse.discard(); return; }
         husk.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         husk.setBaby(babyVariant);
@@ -427,12 +428,12 @@ public class UndeadHorsemanSpawner {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
         DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
 
-        SkeletonHorse horse = EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
+        SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
         horse.setTamed(true);
 
-        Skeleton skeleton = EntityType.SKELETON.create(world, EntitySpawnReason.NATURAL);
+        Skeleton skeleton = EntityTypes.SKELETON.create(world, EntitySpawnReason.NATURAL);
         if (skeleton == null) { horse.discard(); return; }
         placeRider(skeleton, world, pos, localDiff);
         applyEnchantedBowOnHard(skeleton, world);
@@ -449,12 +450,12 @@ public class UndeadHorsemanSpawner {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
         DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
 
-        SkeletonHorse horse = EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
+        SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
         horse.setTamed(true);
 
-        Parched parched = EntityType.PARCHED.create(world, EntitySpawnReason.NATURAL);
+        Parched parched = EntityTypes.PARCHED.create(world, EntitySpawnReason.NATURAL);
         if (parched == null) { horse.discard(); return; }
         placeRider(parched, world, pos, localDiff);
         applyEnchantedBowOnHard(parched, world);
@@ -471,12 +472,12 @@ public class UndeadHorsemanSpawner {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
         DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
 
-        SkeletonHorse horse = EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
+        SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
         horse.setTamed(true);
 
-        Bogged bogged = EntityType.BOGGED.create(world, EntitySpawnReason.NATURAL);
+        Bogged bogged = EntityTypes.BOGGED.create(world, EntitySpawnReason.NATURAL);
         if (bogged == null) { horse.discard(); return; }
         placeRider(bogged, world, pos, localDiff);
 
@@ -492,12 +493,12 @@ public class UndeadHorsemanSpawner {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
         DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
 
-        SkeletonHorse horse = EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
+        SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
         horse.setTamed(true);
 
-        Stray stray = EntityType.STRAY.create(world, EntitySpawnReason.NATURAL);
+        Stray stray = EntityTypes.STRAY.create(world, EntitySpawnReason.NATURAL);
         if (stray == null) { horse.discard(); return; }
         placeRider(stray, world, pos, localDiff);
         applyEnchantedBowOnHard(stray, world);
@@ -515,13 +516,13 @@ public class UndeadHorsemanSpawner {
         DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
         boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
 
-        Zoglin zoglin = EntityType.ZOGLIN.create(world, EntitySpawnReason.NATURAL);
+        Zoglin zoglin = EntityTypes.ZOGLIN.create(world, EntitySpawnReason.NATURAL);
         if (zoglin == null) return;
         zoglin.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         zoglin.setYRot(RANDOM.nextFloat() * 360f);
         zoglin.setBaby(babyVariant);
 
-        ZombifiedPiglin piglin = EntityType.ZOMBIFIED_PIGLIN.create(world, EntitySpawnReason.NATURAL);
+        ZombifiedPiglin piglin = EntityTypes.ZOMBIFIED_PIGLIN.create(world, EntitySpawnReason.NATURAL);
         if (piglin == null) { zoglin.discard(); return; }
         placeRider(piglin, world, pos, localDiff);
         piglin.setBaby(babyVariant);
@@ -540,12 +541,12 @@ public class UndeadHorsemanSpawner {
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
         DifficultyInstance localDiff = world.getCurrentDifficultyAt(pos);
 
-        SkeletonHorse horse = EntityType.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
+        SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
         horse.setTamed(true);
 
-        Skeleton skeleton = EntityType.SKELETON.create(world, EntitySpawnReason.NATURAL);
+        Skeleton skeleton = EntityTypes.SKELETON.create(world, EntitySpawnReason.NATURAL);
         if (skeleton == null) { horse.discard(); return; }
         placeRider(skeleton, world, pos, localDiff);
         applyEnchantedBowOnHard(skeleton, world);
