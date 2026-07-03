@@ -29,6 +29,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -277,13 +278,12 @@ public class UndeadHorsemanSpawner {
             if (!world.canSeeSky(candidate)) continue;
             if (!allowDaylightSpawns && !isNightOrThunder(world)) continue;
             if (!allowDaylightSpawns && !Monster.isDarkEnoughToSpawn(world, candidate, world.getRandom())) continue;
-            if (!world.getBlockState(candidate.below()).isSolid()) continue;
+            if (!isValidSpawnFloor(world, candidate.below())) continue;
             if (!world.getBlockState(candidate).isAir()) continue;
             if (!world.getBlockState(candidate.above()).isAir()) continue;
             if (!world.getBlockState(candidate.above(2)).isAir()) continue;
             if (!world.getBlockState(candidate.above(3)).isAir()) continue;
             if (!world.getFluidState(candidate).isEmpty()) continue;
-            if (!world.getFluidState(candidate.below()).isEmpty()) continue;
             if (isBlockedByOpenPartiesAndClaims(world, candidate, cfg)) continue;
 
             return candidate;
@@ -332,7 +332,7 @@ public class UndeadHorsemanSpawner {
     }
 
     private static boolean isValidSpawnSpace(ServerLevel world, BlockPos pos, int airHeight) {
-        if (!world.getBlockState(pos.below()).isSolid() || !world.getFluidState(pos.below()).isEmpty()) {
+        if (!isValidSpawnFloor(world, pos.below())) {
             return false;
         }
 
@@ -347,6 +347,13 @@ public class UndeadHorsemanSpawner {
             }
         }
         return true;
+    }
+
+    private static boolean isValidSpawnFloor(ServerLevel world, BlockPos floorPos) {
+        var floorState = world.getBlockState(floorPos);
+        return floorState.isSolid()
+            && !floorState.is(Blocks.BEDROCK)
+            && world.getFluidState(floorPos).isEmpty();
     }
 
     private static boolean isInBastionRemnant(ServerLevel world, BlockPos pos) {
