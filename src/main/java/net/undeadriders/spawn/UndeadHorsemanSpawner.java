@@ -32,7 +32,6 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
-import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.fabricmc.loader.api.FabricLoader;
 import net.undeadriders.UndeadRiders;
@@ -357,11 +356,10 @@ public class UndeadHorsemanSpawner {
     }
 
     private static boolean isInBastionRemnant(ServerLevel world, BlockPos pos) {
-        Structure bastion = world.registryAccess()
-            .lookupOrThrow(Registries.STRUCTURE)
-            .getOrThrow(BuiltinStructures.BASTION_REMNANT)
-            .value();
-        StructureStart start = world.structureManager().getStructureWithPieceAt(pos, bastion);
+        StructureStart start = world.structureManager().getStructureWithPieceAt(
+            pos,
+            structure -> structure.is(BuiltinStructures.BASTION_REMNANT)
+        );
         return start.isValid();
     }
 
