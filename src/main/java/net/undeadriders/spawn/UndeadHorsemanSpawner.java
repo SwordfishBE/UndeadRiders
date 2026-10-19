@@ -30,6 +30,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
@@ -40,6 +41,7 @@ import net.undeadriders.config.UndeadRidersConfig;
 
 import java.util.List;
 import java.util.Random;
+import net.undeadriders.spawn.MountPopulation.Type;
 
 /**
  * Handles custom spawn logic for all Undead Rider types.
@@ -93,6 +95,7 @@ public class UndeadHorsemanSpawner {
     public static void onWorldTick(ServerLevel world) {
         if (!world.dimension().equals(Level.OVERWORLD) && !world.dimension().equals(Level.NETHER)) return;
         if (world.getDifficulty() == Difficulty.PEACEFUL) return;
+        if (!world.getGameRules().get(GameRules.SPAWN_MOBS) || !world.isSpawningMonsters()) return;
 
         UndeadRidersConfig cfg = UndeadRiders.CONFIG;
 
@@ -102,7 +105,7 @@ public class UndeadHorsemanSpawner {
         if (!anyEnabled) return;
         if (world.getGameTime() % cfg.spawnCheckIntervalTicks != 0) return;
 
-        List<ServerPlayer> players = world.players();
+        List<ServerPlayer> players = world.getPlayers(player -> !player.isSpectator() && player.isAlive());
         if (players.isEmpty()) return;
 
         if (world.dimension().equals(Level.NETHER)) {
@@ -124,14 +127,13 @@ public class UndeadHorsemanSpawner {
     }
 
     private static void spawnOverworldRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
-        // ZombieHorse/SkeletonHorse don't spawn naturally — count all
-        // Husk/Parched/Bogged/Stray do spawn naturally — count only mounted ones
-        long existingZombie   = cfg.zombieHorsemanEnabled   ? countEntities(world, EntityTypes.ZOMBIE_HORSE)   : 0;
-        long existingHusk     = cfg.huskHorsemanEnabled     ? countMounted(world, EntityTypes.HUSK)             : 0;
-        long existingSkeleton = cfg.skeletonHorsemanEnabled ? countEntities(world, EntityTypes.SKELETON_HORSE)  : 0;
-        long existingParched  = cfg.parchedHorsemanEnabled  ? countMounted(world, EntityTypes.PARCHED)          : 0;
-        long existingBogged   = cfg.boggedHorsemanEnabled   ? countMounted(world, EntityTypes.BOGGED)           : 0;
-        long existingStray    = cfg.strayHorsemanEnabled    ? countMounted(world, EntityTypes.STRAY)            : 0;
+        var population = MountPopulation.count(world.getAllEntities(), false);
+        long existingZombie = population.get(Type.ZOMBIE);
+        long existingHusk = population.get(Type.HUSK);
+        long existingSkeleton = population.get(Type.SKELETON);
+        long existingParched = population.get(Type.PARCHED);
+        long existingBogged = population.get(Type.BOGGED);
+        long existingStray = population.get(Type.STRAY);
 
         long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
 
@@ -178,10 +180,9 @@ public class UndeadHorsemanSpawner {
     }
 
     private static void spawnNetherRiders(ServerLevel world, List<ServerPlayer> players, UndeadRidersConfig cfg) {
-        long existingPiglin = cfg.zombifiedPiglinRiderEnabled
-            ? countMountedTagged(world, EntityTypes.ZOMBIFIED_PIGLIN, UndeadRiders.ZOGLIN_RIDER_TAG)
-            : 0;
-        long existingSkeleton = cfg.netherSkeletonHorsemanEnabled ? countEntities(world, EntityTypes.SKELETON_HORSE) : 0;
+        var population = MountPopulation.count(world.getAllEntities(), true);
+        long existingPiglin = population.get(Type.PIGLIN);
+        long existingSkeleton = population.get(Type.NETHER_SKELETON);
         long cap = (long) players.size() * cfg.maxHorsemenPerPlayer;
 
         for (ServerPlayer player : players) {
@@ -255,7 +256,7 @@ public class UndeadHorsemanSpawner {
     private static BlockPos findSurfacePos(ServerLevel world, ServerPlayer player,
                                             UndeadRidersConfig cfg, BiomeFilter filter) {
         int minDist = cfg.minSpawnDistance;
-        int range   = cfg.maxSpawnDistance - minDist;
+        int range   = cfg.maxSpawnDistance * 2 + 1;
 
         // Parched can always spawn in daylight. Other types can also spawn in daylight
         // when nightOnly is disabled in the config.
@@ -265,24 +266,24 @@ public class UndeadHorsemanSpawner {
         int maxAttempts = (filter == BiomeFilter.ZOMBIE || filter == BiomeFilter.SKELETON) ? 12 : 24;
 
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
-            int offsetX = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
-            int offsetZ = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
+            int offsetX = RANDOM.nextInt(range) - cfg.maxSpawnDistance;
+            int offsetZ = RANDOM.nextInt(range) - cfg.maxSpawnDistance;
+            if (!isWithinSpawnDistance(offsetX, offsetZ, minDist, cfg.maxSpawnDistance)) continue;
 
-            int x = (int) player.getX() + offsetX;
-            int z = (int) player.getZ() + offsetZ;
+            int x = player.blockPosition().getX() + offsetX;
+            int z = player.blockPosition().getZ() + offsetZ;
+            if (!isSpawnAreaLoaded(world, x, z)) continue;
             int y = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
             BlockPos candidate = new BlockPos(x, y, z);
 
+            if (!world.getWorldBorder().isWithinBounds(candidate)) continue;
+            if (!world.isPositionEntityTicking(candidate)) continue;
+            if (isTooCloseToPlayer(world, candidate, minDist)) continue;
             if (!matchesBiome(world, candidate, filter)) continue;
             if (!world.canSeeSky(candidate)) continue;
             if (!allowDaylightSpawns && !isNightOrThunder(world)) continue;
             if (!allowDaylightSpawns && !Monster.isDarkEnoughToSpawn(world, candidate, world.getRandom())) continue;
-            if (!isValidSpawnFloor(world, candidate.below())) continue;
-            if (!world.getBlockState(candidate).isAir()) continue;
-            if (!world.getBlockState(candidate.above()).isAir()) continue;
-            if (!world.getBlockState(candidate.above(2)).isAir()) continue;
-            if (!world.getBlockState(candidate.above(3)).isAir()) continue;
-            if (!world.getFluidState(candidate).isEmpty()) continue;
+            if (!isValidSpawnSpace(world, candidate, 4)) continue;
             if (isBlockedByOpenPartiesAndClaims(world, candidate, cfg)) continue;
 
             return candidate;
@@ -293,20 +294,25 @@ public class UndeadHorsemanSpawner {
     private static BlockPos findNetherPos(ServerLevel world, ServerPlayer player,
                                            UndeadRidersConfig cfg, BiomeFilter filter) {
         int minDist = cfg.minSpawnDistance;
-        int range = cfg.maxSpawnDistance - minDist;
+        int range = cfg.maxSpawnDistance * 2 + 1;
         int baseY = player.blockPosition().getY();
         int minY = world.getMinY() + 2;
         int maxY = world.getMaxY() - 3;
 
         for (int attempt = 0; attempt < 32; attempt++) {
-            int offsetX = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
-            int offsetZ = (RANDOM.nextInt(range) + minDist) * (RANDOM.nextBoolean() ? 1 : -1);
-            int x = (int) player.getX() + offsetX;
-            int z = (int) player.getZ() + offsetZ;
+            int offsetX = RANDOM.nextInt(range) - cfg.maxSpawnDistance;
+            int offsetZ = RANDOM.nextInt(range) - cfg.maxSpawnDistance;
+            if (!isWithinSpawnDistance(offsetX, offsetZ, minDist, cfg.maxSpawnDistance)) continue;
+            int x = player.blockPosition().getX() + offsetX;
+            int z = player.blockPosition().getZ() + offsetZ;
+            if (!isSpawnAreaLoaded(world, x, z)) continue;
             int startY = clamp(baseY + RANDOM.nextInt(33) - 16, minY, maxY);
 
             BlockPos candidate = findNearbyNetherFloor(world, x, startY, z, minY, maxY, 4);
             if (candidate == null) continue;
+            if (!world.getWorldBorder().isWithinBounds(candidate)) continue;
+            if (!world.isPositionEntityTicking(candidate)) continue;
+            if (isTooCloseToPlayer(world, candidate, minDist)) continue;
             if (!matchesBiome(world, candidate, filter)) continue;
             if (isBlockedByOpenPartiesAndClaims(world, candidate, cfg)) continue;
 
@@ -328,6 +334,30 @@ public class UndeadHorsemanSpawner {
             }
         }
         return null;
+    }
+
+    static boolean isWithinSpawnDistance(int offsetX, int offsetZ, int min, int max) {
+        long distanceSquared = (long) offsetX * offsetX + (long) offsetZ * offsetZ;
+        return distanceSquared >= (long) min * min && distanceSquared <= (long) max * max;
+    }
+
+    private static boolean isTooCloseToPlayer(ServerLevel world, BlockPos pos, int minDistance) {
+        for (ServerPlayer player : world.players()) {
+            if (!player.isSpectator() && player.isAlive()
+                && player.distanceToSqr(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)
+                    < (double) minDistance * minDistance) return true;
+        }
+        return false;
+    }
+
+    private static boolean isSpawnAreaLoaded(ServerLevel world, int x, int z) {
+        // The clearance check also reads neighboring chunks at chunk borders.
+        for (int chunkX = (x - 1) >> 4; chunkX <= (x + 1) >> 4; chunkX++) {
+            for (int chunkZ = (z - 1) >> 4; chunkZ <= (z + 1) >> 4; chunkZ++) {
+                if (world.getChunkSource().getChunkNow(chunkX, chunkZ) == null) return false;
+            }
+        }
+        return true;
     }
 
     private static boolean isValidSpawnSpace(ServerLevel world, BlockPos pos, int airHeight) {
@@ -383,6 +413,7 @@ public class UndeadHorsemanSpawner {
         ZombieHorse horse = EntityTypes.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
+        horse.addTag(Type.ZOMBIE.tag());
         horse.setTamed(false);
         boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
         horse.setBaby(babyVariant);
@@ -409,6 +440,7 @@ public class UndeadHorsemanSpawner {
         ZombieHorse horse = EntityTypes.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
+        horse.addTag(Type.HUSK.tag());
         horse.setTamed(false);
         boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
         horse.setBaby(babyVariant);
@@ -436,6 +468,7 @@ public class UndeadHorsemanSpawner {
         SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
+        horse.addTag(Type.SKELETON.tag());
         horse.setTamed(true);
 
         Skeleton skeleton = EntityTypes.SKELETON.create(world, EntitySpawnReason.NATURAL);
@@ -458,6 +491,7 @@ public class UndeadHorsemanSpawner {
         SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
+        horse.addTag(Type.PARCHED.tag());
         horse.setTamed(true);
 
         Parched parched = EntityTypes.PARCHED.create(world, EntitySpawnReason.NATURAL);
@@ -480,6 +514,7 @@ public class UndeadHorsemanSpawner {
         SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
+        horse.addTag(Type.BOGGED.tag());
         horse.setTamed(true);
 
         Bogged bogged = EntityTypes.BOGGED.create(world, EntitySpawnReason.NATURAL);
@@ -501,6 +536,7 @@ public class UndeadHorsemanSpawner {
         SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
+        horse.addTag(Type.STRAY.tag());
         horse.setTamed(true);
 
         Stray stray = EntityTypes.STRAY.create(world, EntitySpawnReason.NATURAL);
@@ -533,6 +569,7 @@ public class UndeadHorsemanSpawner {
         piglin.setBaby(babyVariant);
         piglin.addTag(UndeadRiders.ZOGLIN_RIDER_TAG);
         zoglin.addTag(UndeadRiders.ZOGLIN_RIDER_TAG);
+        zoglin.addTag(Type.PIGLIN.tag());
 
         world.addFreshEntity(zoglin);
         world.addFreshEntity(piglin);
@@ -549,6 +586,7 @@ public class UndeadHorsemanSpawner {
         SkeletonHorse horse = EntityTypes.SKELETON_HORSE.create(world, EntitySpawnReason.NATURAL);
         if (horse == null) return;
         placeHorse(horse, pos, cfg.skeletonHorseSaddleChance);
+        horse.addTag(Type.NETHER_SKELETON.tag());
         horse.setTamed(true);
 
         Skeleton skeleton = EntityTypes.SKELETON.create(world, EntitySpawnReason.NATURAL);
@@ -731,15 +769,4 @@ public class UndeadHorsemanSpawner {
         return world.getEntities((EntityType<? extends Entity>) type, e -> true).size();
     }
 
-    /** Counts only entities of the given type that are currently riding a vehicle (i.e. mounted). */
-    @SuppressWarnings("unchecked")
-    private static long countMounted(ServerLevel world, EntityType<?> type) {
-        return world.getEntities((EntityType<? extends Entity>) type, e -> e.isPassenger()).size();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static long countMountedTagged(ServerLevel world, EntityType<?> type, String tag) {
-        return world.getEntities((EntityType<? extends Entity>) type,
-            e -> e.isPassenger() && e.entityTags().contains(tag)).size();
-    }
 }

@@ -24,9 +24,6 @@ public final class ModrinthUpdateChecker {
 
     private static final String PROJECT_ID = "JVLPDceE";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(REQUEST_TIMEOUT)
-            .build();
     private static final AtomicBoolean CHECK_STARTED = new AtomicBoolean(false);
 
     private ModrinthUpdateChecker() {
@@ -51,8 +48,8 @@ public final class ModrinthUpdateChecker {
                 .GET()
                 .build();
 
-        try {
-            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        try (HttpClient client = HttpClient.newBuilder().connectTimeout(REQUEST_TIMEOUT).build()) {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 UndeadRiders.LOGGER.debug("[UndeadRiders] Update check returned HTTP {}.", response.statusCode());
                 return;
@@ -70,7 +67,7 @@ public final class ModrinthUpdateChecker {
                 UndeadRiders.LOGGER.info("[UndeadRiders] New version available: {} (current: {})",
                         newestVersion, currentVersion);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | RuntimeException e) {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
@@ -79,13 +76,16 @@ public final class ModrinthUpdateChecker {
     }
 
     private static Optional<String> extractLatestVersion(String responseBody) {
+        return extractLatestVersion(responseBody, currentMinecraftVersion());
+    }
+
+    static Optional<String> extractLatestVersion(String responseBody, String currentMinecraftVersion) {
         JsonElement root = JsonParser.parseString(responseBody);
         if (!root.isJsonArray()) {
             return Optional.empty();
         }
 
         JsonArray versions = root.getAsJsonArray();
-        String currentMinecraftVersion = currentMinecraftVersion();
         VersionCandidate bestMatch = null;
 
         for (JsonElement versionElement : versions) {
@@ -119,7 +119,7 @@ public final class ModrinthUpdateChecker {
 
     private static String getString(JsonObject object, String key) {
         JsonElement value = object.get(key);
-        if (value == null || value.isJsonNull()) {
+        if (value == null || !value.isJsonPrimitive()) {
             return null;
         }
 

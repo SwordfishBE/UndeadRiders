@@ -9,6 +9,9 @@ import net.undeadriders.UndeadRiders;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
 
 /**
  * Configuration for Undead Riders.
@@ -66,7 +69,7 @@ public class UndeadRidersConfig {
     /**
      * Chance (0.0–1.0) that a SkeletonHorse spawns with a saddle equipped.
      * Set to 0.0 to never spawn saddles on Skeleton Horses.
-     * Default: 0.10 (10%)
+     * Default: 0.30 (30%)
      */
     public float skeletonHorseSaddleChance = 0.3f;
 
@@ -75,7 +78,7 @@ public class UndeadRidersConfig {
      * Chance (0.0–1.0) that a ZombieHorse spawns wearing horse armor.
      * The armor tier is still difficulty-scaled from the existing tables.
      * Set to 0.0 to never spawn armor on Zombie Horses.
-     * Default: 0.60 (60%)
+     * Default: 0.30 (30%)
      */
     public float zombieHorseArmorChance    = 0.3f;
 
@@ -96,7 +99,7 @@ public class UndeadRidersConfig {
      * Default: true
      */
     public boolean nightOnly = true;
-    /** Max horsemen of each type per online player. Default: 5 */
+    /** Max loaded mounts per original rider type per active player, excluding named mounts. Default: 5 */
     public int maxHorsemenPerPlayer = 5;
 
     // ── Mod compat ────────────────────────────────────────────────────────────
@@ -109,41 +112,66 @@ public class UndeadRidersConfig {
     // ── Load / Save ───────────────────────────────────────────────────────────
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
-    private static final Path CONFIG_PATH =
-        FabricLoader.getInstance().getConfigDir().resolve("undeadriders.json");
+    private static Path configPath() {
+        return FabricLoader.getInstance().getConfigDir().resolve("undeadriders.json");
+    }
 
     public static UndeadRidersConfig load() {
-        File file = CONFIG_PATH.toFile();
+        return load(configPath());
+    }
+
+    static UndeadRidersConfig load(Path path) {
+        File file = path.toFile();
         if (file.exists()) {
-            try (JsonReader reader = new JsonReader(
-                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-                reader.setLenient(true);
-                UndeadRidersConfig config = GSON.fromJson(reader, UndeadRidersConfig.class);
+            try {
+                UndeadRidersConfig config;
+                try (JsonReader reader = new JsonReader(Files.newBufferedReader(path, StandardCharsets.UTF_8))) {
+                    reader.setLenient(true);
+                    config = GSON.fromJson(reader, UndeadRidersConfig.class);
+                }
                 if (config != null) {
                     config.validate();
-                    config.save();
+                    config.save(path);
                     return config;
                 }
+                UndeadRiders.LOGGER.error("[UndeadRiders] Empty config; using defaults without overwriting the file.");
+                return new UndeadRidersConfig();
             } catch (IOException | RuntimeException e) {
                 UndeadRiders.LOGGER.error("[UndeadRiders] Failed to read config — using defaults.", e);
+                return new UndeadRidersConfig();
             }
         }
         UndeadRidersConfig defaults = new UndeadRidersConfig();
-        defaults.save();
-        UndeadRiders.LOGGER.debug("[UndeadRiders] Created default config at {}", CONFIG_PATH);
+        defaults.save(path);
+        UndeadRiders.LOGGER.debug("[UndeadRiders] Created default config at {}", path);
         return defaults;
     }
 
     public void save() {
+        save(configPath());
+    }
+
+    void save(Path target) {
+        Path temporary = null;
         try {
-            File file = CONFIG_PATH.toFile();
-            //noinspection ResultOfMethodCallIgnored
-            file.getParentFile().mkdirs();
-            try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-                writer.write(toCommentedJson());
+            Files.createDirectories(target.getParent());
+            temporary = Files.createTempFile(target.getParent(), "undeadriders-", ".tmp");
+            Files.writeString(temporary, toCommentedJson(), StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             UndeadRiders.LOGGER.error("[UndeadRiders] Failed to save config.", e);
+        } finally {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (IOException e) {
+                    UndeadRiders.LOGGER.debug("[UndeadRiders] Could not remove temporary config file.", e);
+                }
+            }
         }
     }
 
@@ -204,7 +232,7 @@ public class UndeadRidersConfig {
 
         appendComment(sb, "General spawn conditions and caps.");
         appendBoolean(sb, "nightOnly", nightOnly, "If true, most horsemen only spawn at night or during thunderstorms. Parched ignores this and can spawn day and night.");
-        appendInt(sb, "maxHorsemenPerPlayer", maxHorsemenPerPlayer, "Maximum number of horsemen of each type per online player.");
+        appendInt(sb, "maxHorsemenPerPlayer", maxHorsemenPerPlayer, "Maximum loaded mounts per original rider type per active player, including riderless mounts but excluding named mounts.");
         sb.append('\n');
 
         appendComment(sb, "Optional mod compatibility.");
@@ -260,13 +288,13 @@ public class UndeadRidersConfig {
         skeletonHorseSaddleChance  = clamp(skeletonHorseSaddleChance,  0f, 1f);
         zombieHorseArmorChance     = clamp(zombieHorseArmorChance,     0f, 1f);
         spawnCheckIntervalTicks    = Math.max(20, spawnCheckIntervalTicks);
-        spawnAttemptsPerPlayer     = Math.max(1,  spawnAttemptsPerPlayer);
-        minSpawnDistance           = Math.max(8,  minSpawnDistance);
-        maxSpawnDistance           = Math.max(minSpawnDistance + 8, maxSpawnDistance);
+        spawnAttemptsPerPlayer     = Math.clamp(spawnAttemptsPerPlayer, 1, 64);
+        minSpawnDistance           = Math.clamp(minSpawnDistance, 8, 1016);
+        maxSpawnDistance           = Math.clamp(maxSpawnDistance, minSpawnDistance + 8, 1024);
         maxHorsemenPerPlayer       = Math.max(0,  maxHorsemenPerPlayer);
     }
 
     private static float clamp(float v, float min, float max) {
-        return Math.max(min, Math.min(max, v));
+        return Float.isNaN(v) ? min : Math.max(min, Math.min(max, v));
     }
 }

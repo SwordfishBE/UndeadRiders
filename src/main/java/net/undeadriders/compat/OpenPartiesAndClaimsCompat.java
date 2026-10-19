@@ -52,7 +52,7 @@ public final class OpenPartiesAndClaimsCompat {
 
     private static Object invokeByNameAndArgCount(Object target, String name, int argCount, Object... args) throws ReflectiveOperationException {
         for (Method method : target.getClass().getMethods()) {
-            if (method.getName().equals(name) && method.getParameterCount() == argCount) {
+            if (method.getName().equals(name) && method.getParameterCount() == argCount && canAccept(method, args)) {
                 return method.invoke(target, args);
             }
         }
@@ -61,7 +61,8 @@ public final class OpenPartiesAndClaimsCompat {
 
     private static Object invokeStaticByNameAndArgCount(Class<?> targetClass, String name, int argCount, Object... args) throws ReflectiveOperationException {
         for (Method method : targetClass.getMethods()) {
-            if (method.getName().equals(name) && method.getParameterCount() == argCount) {
+            if (method.getName().equals(name) && method.getParameterCount() == argCount
+                    && java.lang.reflect.Modifier.isStatic(method.getModifiers()) && canAccept(method, args)) {
                 return method.invoke(null, args);
             }
         }

@@ -1,6 +1,6 @@
 # 🧟‍♂️ Undead Riders
 
-**Undead Riders** is a Fabric mod for Minecraft that adds naturally spawning undead horsemen to the overworld surface. Six types in total, each tied to a fitting biome. Fully configurable and difficulty-scaled.
+**Undead Riders** is a Fabric mod for Minecraft that adds six undead horseman types to the Overworld surface and two rider types to the Nether. Each uses fitting biomes, configurable spawn rates, and difficulty-scaled equipment.
 
 [![GitHub Release](https://img.shields.io/github/v/release/SwordfishBE/UndeadRiders?display_name=release&logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SwordfishBE/UndeadRiders/total?logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
@@ -115,14 +115,30 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 | `skeletonHorseSaddleChance`   | `0.30`  | Chance a SkeletonHorse spawns with a saddle. `0.0` = never |
 | `zombieHorseArmorChance`      | `0.30`  | Chance a ZombieHorse spawns wearing armor. `0.0` = never |
 | `spawnCheckIntervalTicks`     | `400`   | Ticks between spawn rounds (20 = 1 s) |
-| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round |
-| `minSpawnDistance`            | `24`    | Minimum spawn distance from player (blocks) |
-| `maxSpawnDistance`            | `64`    | Maximum spawn distance from player (blocks) |
+| `spawnAttemptsPerPlayer`      | `6`     | Spawn attempts per player per round, clamped to 1-64 |
+| `minSpawnDistance`            | `24`    | Minimum horizontal spawn radius, clamped to 8-1016 blocks |
+| `maxSpawnDistance`            | `64`    | Maximum horizontal spawn radius, at least 8 above the minimum and at most 1024 blocks |
 | `nightOnly`                   | `true`  | Night/thunderstorm only (ignored for Parched) |
-| `maxHorsemenPerPlayer`        | `5`     | Max per type per online player |
+| `maxHorsemenPerPlayer`        | `5`     | Max loaded mounts per original rider type per active player, including riderless mounts but excluding named mounts |
 | `openPartiesAndClaimsSupport` | `true`  | Respect Open Parties and Claims hostile natural spawn protection when OPAC is installed |
 
-> ⚠️ **After updating the mod**, delete `config/undeadriders.json` once to regenerate it with any new fields.
+Missing config fields receive their defaults automatically. Existing settings are preserved on upgrade. Malformed config files are left untouched; defaults are used until the file is repaired and reloaded.
+
+Spawns respect the `spawn_mobs` and `spawn_monsters` game rules. Spectators and dead players do not trigger spawns or increase the cap. Spawn candidates must be in loaded, entity-ticking chunks inside the world border, have enough room for the mount and rider, and stay outside the minimum distance of other active players. Spawn checks do not request missing chunks for the floor or clearance search.
+
+### Mount limits and sunlight protection
+
+New mounts remember their original rider type even after the rider dies, dismounts, or the world is reloaded.
+These mounts keep counting toward that type's spawn limit while loaded, unless the mount has a custom name.
+Name your pet mount with a name tag to exclude it from the cap; naming only its rider or adding a saddle does not exclude it.
+Removing the mount's custom name makes it count again. This applies to Skeleton Horses, Zombie Horses, and mod Zoglins in both dimensions.
+Horses and Zoglins are never deleted to enforce a cap. Ordinary untagged Zoglins do not consume the mod's cap.
+Limits apply to loaded entities in each dimension, not a global lifetime total across unloaded chunks.
+Vanilla Skeleton Horse traps and all three additional horses are permanently marked. Protection remains after the rider dies. 
+
+When saddle protection is enabled, equipping a saddle removes the mod's sunlight fire on the next entity tick, including in shade.
+Overlapping fire from lava, attacks, or other sources keeps its remaining duration.
+Fire-source tracking is saved with the horse.
 
 ### Open Parties and Claims compatibility
 
@@ -173,12 +189,21 @@ Claims that have hostile natural spawning disabled, for example through OPAC's "
 
 ## 🔄 Commands
 
-Both commands require **gamemaster** permission (op level 2).
+All commands require **gamemaster** permission (op level 2).
 
 | Command | Description |
 |---------|-------------|
 | `/undeadriders reload` | Reloads the config from disk without a server restart |
 | `/undeadriders info` | Shows enabled/disabled status, spawn rates, and current caps in chat |
+| `/undeadriders count` | Counts loaded mounts in your current dimension, with named pets listed separately |
+| `/undeadriders count <type>` | Counts only `zombie`, `husk`, `skeleton`, `parched`, `bogged`, `stray`, `piglin`, or `nether_skeleton` |
+| `/undeadriders highlight on` | Enables 30-second Glowing on mounts found by your subsequent count commands |
+| `/undeadriders highlight off` | Disables highlighting for subsequent counts; existing effects expire naturally |
+
+These commands require gamemaster permission, like reload and info.
+Highlighting defaults to off, is personal to each admin, and resets on disconnect or server restart.
+Glowing is visible to all nearby players. Count includes named pets and riderless mounts but excludes vanilla trap horses and unrelated Zoglins.
+Console can count, but the highlight preference requires a player.
 
 ---
 

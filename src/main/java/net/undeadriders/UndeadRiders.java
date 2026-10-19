@@ -8,6 +8,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.Permissions;
 import net.undeadriders.config.UndeadRidersConfig;
+import net.undeadriders.command.PopulationCommands;
 import net.undeadriders.spawn.UndeadHorsemanSpawner;
 import net.undeadriders.util.ModrinthUpdateChecker;
 import org.slf4j.Logger;
@@ -38,9 +39,10 @@ public class UndeadRiders implements ModInitializer {
     public static final String MOD_ID = "undeadriders";
     public static final String OPEN_PARTIES_AND_CLAIMS_MOD_ID = "openpartiesandclaims";
     public static final String ZOGLIN_RIDER_TAG = MOD_ID + ".zoglin_rider";
+    public static final String TRAP_HORSE_TAG = MOD_ID + ".vanilla_trap_horse";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     /** Globally accessible config instance. Reloaded via /undeadriders reload. */
-    public static UndeadRidersConfig CONFIG;
+    public static volatile UndeadRidersConfig CONFIG;
 
     public static UndeadRidersConfig loadConfigForEditing() {
         return UndeadRidersConfig.load();
@@ -68,10 +70,13 @@ public class UndeadRiders implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> ModrinthUpdateChecker.checkOnceAsync());
 
         // Commands
+        PopulationCommands.registerLifecycle();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             dispatcher.register(
                 literal("undeadriders")
                     .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                    .then(PopulationCommands.countCommand())
+                    .then(PopulationCommands.highlightCommand())
                     .then(literal("reload")
                         .executes(ctx -> {
                             CONFIG = UndeadRidersConfig.load();
@@ -88,7 +93,7 @@ public class UndeadRiders implements ModInitializer {
                             var src = ctx.getSource();
                             var cfg = CONFIG;
                             var level = src.getLevel();
-                            long players = level.players().size();
+                            long players = level.getPlayers(player -> !player.isSpectator() && player.isAlive()).size();
                             long cap = players * cfg.maxHorsemenPerPlayer;
 
                             src.sendSuccess(() -> Component.literal(

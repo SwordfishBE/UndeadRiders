@@ -174,18 +174,21 @@ final class UndeadRidersClothConfigScreen {
         spawning.addEntry(entries.startIntField(Component.literal("Spawn Attempts Per Player"), config.spawnAttemptsPerPlayer)
             .setDefaultValue(6)
             .setMin(1)
+            .setMax(64)
             .setTooltip(Component.literal("Spawn attempts per player during each spawn round."))
             .setSaveConsumer(value -> config.spawnAttemptsPerPlayer = value)
             .build());
         spawning.addEntry(entries.startIntField(Component.literal("Minimum Spawn Distance"), config.minSpawnDistance)
             .setDefaultValue(24)
             .setMin(8)
+            .setMax(1016)
             .setTooltip(Component.literal("Minimum distance from the player in blocks."))
             .setSaveConsumer(value -> config.minSpawnDistance = value)
             .build());
         spawning.addEntry(entries.startIntField(Component.literal("Maximum Spawn Distance"), config.maxSpawnDistance)
             .setDefaultValue(64)
             .setMin(16)
+            .setMax(1024)
             .setTooltip(Component.literal("Maximum distance from the player in blocks."))
             .setSaveConsumer(value -> config.maxSpawnDistance = value)
             .build());
@@ -197,7 +200,7 @@ final class UndeadRidersClothConfigScreen {
         spawning.addEntry(entries.startIntField(Component.literal("Max Horsemen Per Player"), config.maxHorsemenPerPlayer)
             .setDefaultValue(5)
             .setMin(0)
-            .setTooltip(Component.literal("Maximum number of horsemen of each type per online player."))
+            .setTooltip(Component.literal("Maximum loaded mounts of each original rider type per active player, including riderless mounts but excluding named mounts."))
             .setSaveConsumer(value -> config.maxHorsemenPerPlayer = value)
             .build());
 
