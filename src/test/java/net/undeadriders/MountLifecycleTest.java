@@ -176,6 +176,7 @@ class MountLifecycleTest {
             @Override
             public boolean canBeAffected(net.minecraft.world.effect.MobEffectInstance effect) { return true; }
         };
+        skeleton.setId(1001);
         skeleton.addTag(Type.SKELETON.tag());
         skeleton.setCustomName(Component.literal("Pet"));
         var legacy = new ZombieHorse(EntityTypes.ZOMBIE_HORSE, level);
@@ -201,15 +202,64 @@ class MountLifecycleTest {
         try {
             dispatcher.execute("highlight on", source);
             dispatcher.execute("count skeleton", source);
-            assertTrue(skeleton.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING));
-            assertEquals(600, skeleton.getEffect(net.minecraft.world.effect.MobEffects.GLOWING).getDuration());
+            assertFalse(skeleton.isCurrentlyGlowing());
+            skeleton.setCustomName(null);
+            dispatcher.execute("count skeleton", source);
+            assertTrue(skeleton.isCurrentlyGlowing());
             assertFalse(legacy.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING));
             dispatcher.execute("highlight off", source);
+            assertFalse(skeleton.isCurrentlyGlowing());
             dispatcher.execute("count husk", source);
             assertFalse(legacy.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING));
         } finally {
             dispatcher.execute("highlight off", source);
         }
+    }
+
+    @Test
+    void highlightsExpireProtectPetsAndPreserveOtherSources() {
+        var level = level();
+        var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level) {
+            @Override
+            public boolean canBeAffected(net.minecraft.world.effect.MobEffectInstance effect) { return true; }
+        };
+        var highlights = new net.undeadriders.command.MountHighlights();
+        horse.setId(1002);
+        var admin = java.util.UUID.randomUUID();
+        var other = java.util.UUID.randomUUID();
+        highlights.add(horse, admin);
+        for (int i = 0; i < 599; i++) highlights.tick();
+        assertTrue(horse.isCurrentlyGlowing());
+        highlights.tick();
+        assertFalse(horse.isCurrentlyGlowing());
+        highlights.add(horse, admin);
+        highlights.add(horse, other);
+        highlights.remove(admin);
+        assertTrue(horse.isCurrentlyGlowing());
+        horse.addTag("undeadriders.command_highlight");
+        net.undeadriders.command.MountHighlights.onLoad(horse);
+        assertFalse(horse.isCurrentlyGlowing());
+        assertFalse(horse.entityTags().contains("undeadriders.command_highlight"));
+        highlights.add(horse, admin);
+        highlights.remove(horse);
+        assertFalse(horse.isCurrentlyGlowing());
+        highlights.remove(other);
+        assertFalse(horse.isCurrentlyGlowing());
+        highlights.add(horse, admin);
+        horse.setCustomName(Component.literal("Pet"));
+        highlights.tick();
+        assertFalse(horse.isCurrentlyGlowing());
+        horse.setCustomName(null);
+        highlights.add(horse, admin);
+        horse.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.GLOWING, 1200));
+        highlights.remove(admin);
+        assertTrue(horse.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING));
+        assertEquals(1200, horse.getEffect(net.minecraft.world.effect.MobEffects.GLOWING).getDuration());
+        horse.removeEffect(net.minecraft.world.effect.MobEffects.GLOWING);
+        horse.setGlowingTag(true);
+        highlights.add(horse, admin);
+        highlights.remove(admin);
+        assertTrue(horse.isCurrentlyGlowing());
     }
 
     @Test

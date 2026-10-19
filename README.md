@@ -124,7 +124,8 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 
 Missing config fields receive their defaults automatically. Existing settings are preserved on upgrade. Malformed config files are left untouched; defaults are used until the file is repaired and reloaded.
 
-Spawns respect the `spawn_mobs` and `spawn_monsters` game rules. Spectators and dead players do not trigger spawns or increase the cap. Spawn candidates must be in loaded, entity-ticking chunks inside the world border, have enough room for the mount and rider, and stay outside the minimum distance of other active players. Spawn checks do not request missing chunks for the floor or clearance search.
+Spawns respect the `spawn_mobs` and `spawn_monsters` game rules. Spectators and dead players do not trigger spawns or increase the cap.
+Spawn candidates must be in loaded, entity-ticking chunks inside the world border, have enough room for the mount and rider, and stay outside the minimum distance of other active players. 
 
 ### Mount limits and sunlight protection
 
@@ -197,13 +198,18 @@ All commands require **gamemaster** permission (op level 2).
 | `/undeadriders info` | Shows enabled/disabled status, spawn rates, and current caps in chat |
 | `/undeadriders count` | Counts loaded mounts in your current dimension, with named pets listed separately |
 | `/undeadriders count <type>` | Counts only `zombie`, `husk`, `skeleton`, `parched`, `bogged`, `stray`, `piglin`, or `nether_skeleton` |
-| `/undeadriders highlight on` | Enables 30-second Glowing on mounts found by your subsequent count commands |
-| `/undeadriders highlight off` | Disables highlighting for subsequent counts; existing effects expire naturally |
+| `/undeadriders highlight on` | Enables temporary outlines on unnamed mounts found by your subsequent count commands |
+| `/undeadriders highlight off` | Disables highlighting and immediately removes your active markings |
 
 These commands require gamemaster permission, like reload and info.
 Highlighting defaults to off, is personal to each admin, and resets on disconnect or server restart.
 Glowing is visible to all nearby players. Count includes named pets and riderless mounts but excludes vanilla trap horses and unrelated Zoglins.
-Console can count, but the highlight preference requires a player.
+
+Named pets are never highlighted. Naming a highlighted mount removes its marking on the next server tick.
+Markings last 600 server ticks (30 seconds at 20 TPS); repeating count refreshes the duration. 
+Turning highlighting off or disconnecting removes your markings immediately, unless another admin also marked that mount.
+Markings are also cleared when entities unload or the server stops. Existing outlines and Glowing potion effects are preserved.
+
 
 ---
 

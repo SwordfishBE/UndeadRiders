@@ -11,8 +11,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.undeadriders.spawn.MountPopulation;
@@ -21,12 +21,28 @@ import static net.minecraft.commands.Commands.literal;
 
 public final class PopulationCommands {
     private static final Set<UUID> HIGHLIGHT = new HashSet<>();
+    private static final MountHighlights MARKS = new MountHighlights();
 
     private PopulationCommands() { }
 
     public static void registerLifecycle() {
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> HIGHLIGHT.remove(handler.player.getUUID()));
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> HIGHLIGHT.clear());
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> disable(handler.player.getUUID()));
+        ServerTickEvents.END_SERVER_TICK.register(server -> MARKS.tick());
+        ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+            if (entity instanceof LivingEntity living) MountHighlights.onLoad(living);
+        });
+        ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
+            if (entity instanceof LivingEntity living) MARKS.remove(living);
+        });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            MARKS.clear();
+            HIGHLIGHT.clear();
+        });
+    }
+
+    private static void disable(UUID admin) {
+        HIGHLIGHT.remove(admin);
+        MARKS.remove(admin);
     }
 
     public static LiteralArgumentBuilder<CommandSourceStack> countCommand() {
@@ -47,10 +63,10 @@ public final class PopulationCommands {
     private static int toggle(CommandSourceStack source, boolean enabled) throws CommandSyntaxException {
         UUID player = source.getPlayerOrException().getUUID();
         if (enabled) HIGHLIGHT.add(player);
-        else HIGHLIGHT.remove(player);
+        else disable(player);
         source.sendSuccess(() -> Component.literal("[UndeadRiders] Count highlighting "
             + (enabled ? "ON: matching mounts will glow for 30 seconds, visible to nearby players."
-                : "OFF. Existing effects expire naturally.")), false);
+                : "OFF. Your active highlights have been removed.")), false);
         return 1;
     }
 
@@ -71,8 +87,8 @@ public final class PopulationCommands {
             for (Type type : types) {
                 if (filter == null || filter == type) counts.merge(type, 1, Integer::sum);
             }
-            if (highlight && mount instanceof LivingEntity living) {
-                living.addEffect(new MobEffectInstance(MobEffects.GLOWING, 600, 0, false, false));
+            if (highlight && !mount.hasCustomName() && mount instanceof LivingEntity living) {
+                MARKS.add(living, source.getPlayer().getUUID());
             }
         }
         var message = new StringBuilder("[UndeadRiders] Loaded mounts in ")
@@ -86,7 +102,7 @@ public final class PopulationCommands {
         }
         if (legacy > 0) message.append("\nLegacy mounts with unknown subtype: ").append(legacy)
             .append(". These match multiple compatible types; rows may overlap.");
-        if (highlight) message.append("\nMatching mounts highlighted for 30 seconds.");
+        if (highlight) message.append("\nMatching unnamed mounts highlighted for 30 seconds.");
         source.sendSuccess(() -> Component.literal(message.toString()), false);
         return total;
     }
