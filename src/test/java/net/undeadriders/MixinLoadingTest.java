@@ -18,6 +18,8 @@ class MixinLoadingTest {
         assertTrue(java.util.Arrays.stream(SkeletonHorse.class.getDeclaredMethods())
             .anyMatch(method -> method.getName().contains("undeadriders$burnInSunlight")));
         assertTrue(java.util.Arrays.stream(LivingEntity.class.getDeclaredMethods())
+            .anyMatch(method -> method.getName().contains("undeadriders$includeCommandHighlight")));
+        assertTrue(java.util.Arrays.stream(LivingEntity.class.getDeclaredMethods())
             .anyMatch(method -> method.getName().contains("undeadriders$ignoreZoglinRiderSuffocation")));
         assertTrue(java.util.Arrays.stream(Entity.class.getDeclaredMethods())
             .anyMatch(method -> method.getName().contains("undeadriders$trackExternalIgnition")));

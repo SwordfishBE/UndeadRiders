@@ -6,10 +6,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.animal.equine.SkeletonHorse;
+import net.minecraft.world.entity.monster.skeleton.Parched;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.undeadriders.UndeadRiders;
+import net.undeadriders.spawn.MountPopulation.Type;
 import net.undeadriders.util.SunlightFireState;
 import net.undeadriders.util.SunlightTracked;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,6 +40,7 @@ abstract class SkeletonHorseSunlightMixin extends AbstractHorse implements Sunli
         var config = UndeadRiders.CONFIG;
         SunlightFireState fire = undeadriders$fireState();
         if (!config.skeletonHorseSunlightBurnEnabled || undeadriders$isVanillaSkeletonTrapHorseman()
+            || undeadriders$hasParchedRiderProtection()
             || (config.saddledSkeletonHorsesAvoidSunlightBurn
                 && !getItemBySlot(EquipmentSlot.SADDLE).isEmpty())) {
             if (fire.active()) {
@@ -80,6 +83,19 @@ abstract class SkeletonHorseSunlightMixin extends AbstractHorse implements Sunli
 
     private boolean undeadriders$isVanillaSkeletonTrapHorseman() {
         return ((SkeletonHorse) (Object) this).isTrap() || entityTags().contains(UndeadRiders.TRAP_HORSE_TAG);
+    }
+
+    @Unique
+    private boolean undeadriders$hasParchedRiderProtection() {
+        if (!(getFirstPassenger() instanceof Parched parched) || !parched.isAlive()) return false;
+        if (entityTags().contains(Type.PARCHED.tag())) return true;
+        // Older occupied mounts predate origin tags. Infer them here, before sunlight ignition,
+        // rather than waiting for a population scan that may be disabled.
+        for (Type type : Type.values()) {
+            if (entityTags().contains(type.tag())) return false;
+        }
+        addTag(Type.PARCHED.tag());
+        return true;
     }
 
     @Inject(method = "setTrap", at = @At("HEAD"))

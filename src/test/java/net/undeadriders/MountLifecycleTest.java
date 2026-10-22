@@ -86,6 +86,52 @@ class MountLifecycleTest {
     }
 
     @Test
+    void parchedRiderProtectsOnlyModMountWhileAliveAndMounted() throws Exception {
+        var level = level();
+        var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level);
+        var rider = new net.minecraft.world.entity.monster.skeleton.Parched(EntityTypes.PARCHED, level);
+        UndeadRiders.CONFIG.saddledSkeletonHorsesAvoidSunlightBurn = false;
+        assertTrue(rider.startRiding(horse, true, true));
+        var predicate = java.util.Arrays.stream(SkeletonHorse.class.getDeclaredMethods())
+            .filter(method -> method.getName().contains("undeadriders$hasParchedRiderProtection"))
+            .findFirst().orElseThrow();
+        predicate.setAccessible(true);
+        assertEquals(true, predicate.invoke(horse));
+        assertTrue(horse.entityTags().contains(Type.PARCHED.tag()));
+        sunlight(horse);
+        protectionTick(horse);
+        assertEquals(0, horse.getRemainingFireTicks());
+        assertTrue(horse.getItemBySlot(EquipmentSlot.SADDLE).isEmpty());
+        rider.setHealth(0);
+        assertEquals(false, predicate.invoke(horse));
+        rider.setHealth(20);
+        assertEquals(true, predicate.invoke(horse));
+        rider.stopRiding();
+        assertEquals(false, predicate.invoke(horse));
+        horse.removeTag(Type.PARCHED.tag());
+        horse.addTag(Type.STRAY.tag());
+        assertTrue(rider.startRiding(horse, true, true));
+        assertEquals(false, predicate.invoke(horse));
+    }
+
+    @Test
+    void parchedProtectionPreservesExternalFire() throws Exception {
+        var level = level();
+        var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level);
+        horse.addTag(Type.PARCHED.tag());
+        var rider = new net.minecraft.world.entity.monster.skeleton.Parched(EntityTypes.PARCHED, level);
+        assertTrue(rider.startRiding(horse, true, true));
+        sunlight(horse);
+        horse.igniteForTicks(40);
+        protectionTick(horse);
+        assertEquals(40, horse.getRemainingFireTicks());
+        assertFalse(((SunlightTracked) horse).undeadriders$fireState().active());
+        horse.igniteForTicks(300);
+        protectionTick(horse);
+        assertEquals(300, horse.getRemainingFireTicks());
+    }
+
+    @Test
     void saddleInShadeExtinguishesOnlySunlightFire() throws Exception {
         var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level());
         sunlight(horse);
@@ -236,14 +282,10 @@ class MountLifecycleTest {
         highlights.add(horse, other);
         highlights.remove(admin);
         assertTrue(horse.isCurrentlyGlowing());
-        horse.addTag("undeadriders.command_highlight");
-        net.undeadriders.command.MountHighlights.onLoad(horse);
+        highlights.remove(other);
         assertFalse(horse.isCurrentlyGlowing());
-        assertFalse(horse.entityTags().contains("undeadriders.command_highlight"));
         highlights.add(horse, admin);
         highlights.remove(horse);
-        assertFalse(horse.isCurrentlyGlowing());
-        highlights.remove(other);
         assertFalse(horse.isCurrentlyGlowing());
         highlights.add(horse, admin);
         horse.setCustomName(Component.literal("Pet"));
@@ -256,10 +298,41 @@ class MountLifecycleTest {
         assertTrue(horse.hasEffect(net.minecraft.world.effect.MobEffects.GLOWING));
         assertEquals(1200, horse.getEffect(net.minecraft.world.effect.MobEffects.GLOWING).getDuration());
         horse.removeEffect(net.minecraft.world.effect.MobEffects.GLOWING);
+        highlights.add(horse, admin);
+        // Another source sets the vanilla flag after our highlight has started.
+        horse.setGlowingTag(true);
+        highlights.remove(admin);
+        assertTrue(horse.isCurrentlyGlowing());
+        horse.setGlowingTag(false);
+        assertFalse(horse.isCurrentlyGlowing());
         horse.setGlowingTag(true);
         highlights.add(horse, admin);
         highlights.remove(admin);
         assertTrue(horse.isCurrentlyGlowing());
+        horse.addTag("undeadriders.command_highlight");
+        net.undeadriders.command.MountHighlights.onLoad(horse);
+        assertFalse(horse.isCurrentlyGlowing());
+        assertFalse(horse.entityTags().contains("undeadriders.command_highlight"));
+    }
+
+    @Test
+    void commandHighlightsAreNotSavedWithTheHorse() {
+        var level = level();
+        var registries = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+        when(level.registryAccess()).thenReturn(registries);
+        var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level);
+        horse.setId(1003);
+        var highlights = new net.undeadriders.command.MountHighlights();
+        highlights.add(horse, java.util.UUID.randomUUID());
+        assertTrue(horse.isCurrentlyGlowing());
+        var output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        horse.saveWithoutId(output);
+        var loaded = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level);
+        loaded.load(TagValueInput.create(ProblemReporter.DISCARDING, registries, output.buildResult()));
+        assertFalse(loaded.isCurrentlyGlowing());
+        assertFalse(loaded.entityTags().contains("undeadriders.command_highlight"));
+        highlights.clear();
+        assertFalse(horse.isCurrentlyGlowing());
     }
 
     @Test

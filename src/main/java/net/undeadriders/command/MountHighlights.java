@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import net.minecraft.world.entity.LivingEntity;
+import net.undeadriders.util.CommandHighlighted;
 
 /** Temporary command outlines, independent of potion effects. Accessed on the server thread. */
 public final class MountHighlights {
@@ -24,8 +25,7 @@ public final class MountHighlights {
             if (mount.isCurrentlyGlowing()) return;
             mark = new Mark();
             marks.put(mount, mark);
-            mount.addTag(SAVED_MARKER);
-            mount.setGlowingTag(true);
+            ((CommandHighlighted) mount).undeadriders$setCommandHighlighted(true);
         }
         mark.admins.add(admin);
         mark.ticks = 600;
@@ -49,12 +49,15 @@ public final class MountHighlights {
 
     /** Clear transient outlines that were captured by an autosave. */
     public static void onLoad(LivingEntity mount) {
-        if (mount.entityTags().contains(SAVED_MARKER)) clearMark(mount);
+        // Migration only: older builds persisted our outline using the vanilla flag.
+        if (mount.entityTags().contains(SAVED_MARKER)) {
+            mount.setGlowingTag(false);
+            mount.removeTag(SAVED_MARKER);
+        }
     }
 
     private static void clearMark(LivingEntity mount) {
-        mount.setGlowingTag(false);
-        mount.removeTag(SAVED_MARKER);
+        ((CommandHighlighted) mount).undeadriders$setCommandHighlighted(false);
     }
 
     public void tick() {
