@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 abstract class LivingEntityCommandHighlightMixin implements CommandHighlighted {
-    @Unique private boolean undeadriders$commandHighlighted;
+    @Unique private volatile boolean undeadriders$commandHighlighted;
 
     @Shadow private void updateGlowingStatus() { throw new AssertionError(); }
 

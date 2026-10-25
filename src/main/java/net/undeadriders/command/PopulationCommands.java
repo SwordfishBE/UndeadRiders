@@ -29,10 +29,21 @@ public final class PopulationCommands {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> disable(handler.player.getUUID()));
         ServerTickEvents.END_SERVER_TICK.register(server -> MARKS.tick());
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-            if (entity instanceof LivingEntity living) MountHighlights.onLoad(living);
+            if (entity instanceof LivingEntity living) {
+                var server = level.getServer();
+                if (server.isSameThread()) MountHighlights.onLoad(living);
+                else server.execute(() -> {
+                    if (!living.isRemoved()) MountHighlights.onLoad(living);
+                });
+            }
         });
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
-            if (entity instanceof LivingEntity living) MARKS.remove(living);
+            if (entity instanceof LivingEntity living) {
+                // Async can unload entities from worker threads. Keep the weak map server-thread owned.
+                var server = level.getServer();
+                if (server.isSameThread()) MARKS.remove(living);
+                else server.execute(() -> MARKS.remove(living));
+            }
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             MARKS.clear();

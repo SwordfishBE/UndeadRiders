@@ -11,6 +11,7 @@ base {
 }
 
 repositories {
+	maven { url = 'https://api.modrinth.com/maven' }
 	maven { url = 'https://maven.terraformersmc.com/releases/' }
 	maven { url = 'https://maven.shedaniel.me/' }
 }
@@ -28,9 +29,27 @@ loom {
 
 fabricApi {
 	configureDataGeneration()
+    if (providers.gradleProperty('compat').isPresent()) {
+        def target = providers.gradleProperty('compat').get()
+        if (!(target in ['baseline', 'moonrise', 'async'])) {
+            throw new GradleException('Use -Pcompat=baseline, moonrise, or async; never combine Moonrise and Async.')
+        }
+        configureTests {
+            createSourceSet = true
+            modId = 'undeadriders-test'
+            enableGameTests = true
+            enableClientGameTests = false
+        }
+    }
 }
 
 dependencies {
+    if (providers.gradleProperty('compat').orNull == 'moonrise') {
+        gametestRuntimeOnly 'maven.modrinth:moonrise-opt:1z5ctm95'
+    }
+    if (providers.gradleProperty('compat').orNull == 'async') {
+        gametestRuntimeOnly 'maven.modrinth:async:gcduhoHv'
+    }
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.4'
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
