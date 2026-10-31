@@ -76,6 +76,7 @@ public class CompatibilityTests {
         var original = UndeadRiders.CONFIG;
         var cfg = new UndeadRidersConfig();
         cfg.zombieHorsemanEnabled = cfg.huskHorsemanEnabled = cfg.skeletonHorsemanEnabled = false;
+        cfg.frostbiteHorsemanEnabled = false;
         cfg.parchedHorsemanEnabled = cfg.boggedHorsemanEnabled = cfg.strayHorsemanEnabled = false;
         cfg.zombifiedPiglinRiderEnabled = cfg.netherSkeletonHorsemanEnabled = false;
         cfg.skeletonHorseSunlightBurnEnabled = true;
@@ -95,12 +96,14 @@ public class CompatibilityTests {
         });
         h.setTime(6000);
         for (int x = 0; x < 48; x++) for (int z = 0; z < 48; z++) h.setBlock(x, 0, z, Blocks.STONE);
-        // Exercise actual production factories for all eight combinations.
+        // Exercise all nine production combinations, plus a forced baby Frostbite pair.
         String[] factories = {"spawnZombieHorseman", "spawnHuskHorseman", "spawnSkeletonHorseman",
             "spawnParchedHorseman", "spawnBoggedHorseman", "spawnStrayHorseman",
-            "spawnZombifiedPiglinRider", "spawnNetherSkeletonHorseman"};
+            "spawnZombifiedPiglinRider", "spawnNetherSkeletonHorseman",
+            "spawnFrostbiteHorseman", "spawnFrostbiteHorseman"};
         var mounts = new ArrayList<Mob>();
         for (int i = 0; i < factories.length; i++) {
+            cfg.babyUndeadRiderChance = i == 9 ? 1 : 0;
             BlockPos pos = h.absolutePos(new BlockPos(4 + (i % 4) * 9, 1, 4 + (i / 4) * 9));
             method(factories[i], ServerLevel.class, BlockPos.class).invoke(null, level, pos);
             Mob mount = null;
@@ -120,6 +123,16 @@ public class CompatibilityTests {
             ((Mob) mount.getFirstPassenger()).setPermanentlyInvulnerable(true);
             ((Mob) mount.getFirstPassenger()).setPersistenceRequired();
         }
+        var frostbite = (net.minecraft.world.entity.monster.zombie.Frostbite) mounts.get(8).getFirstPassenger();
+        h.assertTrue(!frostbite.isBaby() && !((net.minecraft.world.entity.animal.equine.ZombieHorse) mounts.get(8)).isBaby(),
+            "Adult Frostbite mounts an adult Zombie Horse");
+        h.assertTrue(frostbite.getMainHandItem().isEmpty() || frostbite.getMainHandItem().is(Items.ICE_BALL),
+            "Frostbite retains its native equipment instead of zombie weapons");
+        var babyFrostbite = (net.minecraft.world.entity.monster.zombie.Frostbite) mounts.get(9).getFirstPassenger();
+        h.assertTrue(babyFrostbite.isBaby() && ((net.minecraft.world.entity.animal.equine.ZombieHorse) mounts.get(9)).isBaby(),
+            "Forced baby Frostbite mounts a baby Zombie Horse");
+        h.assertTrue(babyFrostbite.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty(), "Baby Frostbite has no shield");
+        h.assertTrue(mounts.get(8).entityTags().contains(Type.FROSTBITE.tag()), "Frostbite mount remembers its type");
         SkeletonHorse parched = (SkeletonHorse) mounts.get(3);
         Parched parchedRider = (Parched) parched.getFirstPassenger();
         h.assertTrue(parched.getItemBySlot(EquipmentSlot.SADDLE).isEmpty(), "Parched uses configured zero saddle chance");
@@ -131,6 +144,8 @@ public class CompatibilityTests {
         h.assertTrue(piglin.getHealth() == health, "Suffocation did not damage piglin");
         piglin.setPermanentlyInvulnerable(true);
         BlockPos floor = h.absolutePos(new BlockPos(40, 1, 40));
+        h.assertTrue(!(boolean) method("isInBastionRemnant", ServerLevel.class, BlockPos.class)
+            .invoke(null, level, floor), "Missing Bastion returns false without dereferencing a null structure");
         h.setBlock(40, 0, 40, Blocks.BEDROCK);
         h.assertTrue(!(boolean) method("isValidSpawnSpace", ServerLevel.class, BlockPos.class, int.class)
             .invoke(null, level, floor, 4), "Bedrock floor is rejected");
@@ -154,6 +169,11 @@ public class CompatibilityTests {
         pet.setCustomName(Component.literal("Compatibility pet"));
         command(h, source, "undeadriders count");
         h.assertTrue(!pet.isCurrentlyGlowing(), "Highlight defaults to off");
+        command(h, source, "undeadriders highlight on");
+        command(h, source, "undeadriders count frostbite");
+        h.assertTrue(mounts.get(8).isCurrentlyGlowing(), "Frostbite count filter highlights its mount");
+        command(h, source, "undeadriders highlight off");
+        h.assertTrue(!mounts.get(8).isCurrentlyGlowing(), "Frostbite highlight clears immediately");
         command(h, source, "undeadriders highlight on");
         command(h, source, "undeadriders count skeleton");
         h.assertTrue(!pet.isCurrentlyGlowing(), "Named pets are not highlighted");

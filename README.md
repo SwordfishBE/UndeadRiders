@@ -1,6 +1,6 @@
 # 🧟‍♂️ Undead Riders
 
-**Undead Riders** is a Fabric mod for Minecraft that adds six undead horseman types to the Overworld surface and two rider types to the Nether. Each uses fitting biomes, configurable spawn rates, and difficulty-scaled equipment.
+**Undead Riders** is a Fabric mod for Minecraft that adds seven undead horseman types to the Overworld surface and two rider types to the Nether. Each uses fitting biomes, configurable spawn rates, and difficulty-scaled equipment.
 
 [![GitHub Release](https://img.shields.io/github/v/release/SwordfishBE/UndeadRiders?display_name=release&logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SwordfishBE/UndeadRiders/total?logo=github)](https://github.com/SwordfishBE/UndeadRiders/releases)
@@ -14,9 +14,10 @@
 - 🐴 **Zombie Horseman** — Zombie on a Zombie Horse. All biomes except Desert. Night only.
 - 🏜️ **Husk Horseman** — Husk on a Zombie Horse. Desert only. Night only.
 - 💀 **Skeleton Horseman** — Skeleton on a Skeleton Horse. All biomes except Desert/Swamp/Frozen. Night only.
-- ☀️ **Parched Horseman** — Parched on a Skeleton Horse. Desert only. Day and night.
+- ☀️ **Parched Horseman** — Parched on a Skeleton Horse. Desert only. Day and night. 
 - 🌿 **Bogged Horseman** — Bogged on a Skeleton Horse. Swamp and Mangrove Swamp only. Night only.
 - ❄️ **Stray Horseman** — Stray on a Skeleton Horse. All frozen biomes. Night only.
+- ❄️ **Frostbite Horseman** - Frostbite on a Zombie Horse in Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes, Snowy Beach, Snowy Taiga, and Grove.
 - 🐗 **Zombified Piglin Rider** — Zombified Piglin on a Zoglin. Crimson Forest, Nether Wastes, and Bastion Remnants.
 - 💀 **Nether Skeleton Horseman** — Skeleton on a Skeleton Horse. Soul Sand Valley only.
 - 🎁 **Saddle drop** — Horses only spawn with a saddle at a low configurable rate (default 15% zombie, 30% skeleton). Saddles are looting-aware: Looting III gives ~20% drop chance. Players must hunt at night for saddled horses!
@@ -72,6 +73,7 @@ Rider equipment handled by vanilla's `finalizeSpawn()`. On **Hard**: 30% chance 
 |------|--------|
 | Zombie Horseman | All overworld biomes **except** Desert, Frozen Ocean, Deep Frozen Ocean, Snowy Beach |
 | Husk Horseman | Desert |
+| Frostbite Horseman | Ice Spikes, Snowy Plains, Jagged Peaks, Frozen Peaks, Snowy Slopes, Snowy Beach, Snowy Taiga, Grove |
 | Skeleton Horseman | All overworld biomes **except** Desert, Swamp, Mangrove Swamp, and all frozen biomes |
 | Parched Horseman | Desert |
 | Bogged Horseman | Swamp, Mangrove Swamp |
@@ -94,6 +96,7 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 |-------------------------------|---------|-------------|
 | `zombieHorsemanEnabled`       | `true`  | Enable Zombie Horseman |
 | `huskHorsemanEnabled`         | `true`  | Enable Husk Horseman (desert) |
+| `frostbiteHorsemanEnabled`    | `true`  | Enable Frostbite Horseman in the eight cold surface biomes listed above |
 | `skeletonHorsemanEnabled`     | `true`  | Enable Skeleton Horseman |
 | `parchedHorsemanEnabled`      | `true`  | Enable Parched Horseman (desert) |
 | `boggedHorsemanEnabled`       | `true`  | Enable Bogged Horseman (swamp) |
@@ -104,6 +107,7 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 | `netherSkeletonHorsemanEnabled` | `true` | Enable Nether Skeleton Horseman in Soul Sand Valley |
 | `zombieHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `huskHorsemanSpawnRate`       | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
+| `frostbiteHorsemanSpawnRate`  | `0.15`  | Independent Frostbite spawn chance per attempt, `0.0`-`1.0` |
 | `skeletonHorsemanSpawnRate`   | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `parchedHorsemanSpawnRate`    | `0.10`  | Spawn chance per attempt, `0.0`–`1.0` |
 | `boggedHorsemanSpawnRate`     | `0.15`  | Spawn chance per attempt, `0.0`–`1.0` |
@@ -124,22 +128,17 @@ With `Mod Menu` + `Cloth Config API` installed, you get a full in-game config sc
 
 Missing config fields receive their defaults automatically. Existing settings are preserved on upgrade. Malformed config files are left untouched; defaults are used until the file is repaired and reloaded.
 
-Spawns respect the `spawn_mobs` and `spawn_monsters` game rules. Spectators and dead players do not trigger spawns or increase the cap.
-Spawn candidates must be in loaded, entity-ticking chunks inside the world border, have enough room for the mount and rider, and stay outside the minimum distance of other active players. 
+Spawns respect the `spawn_mobs` and `spawn_monsters` game rules. Spectators and dead players do not trigger spawns or increase the cap. Spawn candidates must be in loaded, entity-ticking chunks inside the world border, have enough room for the mount and rider, and stay outside the minimum distance of other active players. Spawn checks do not request missing chunks for the floor or clearance search.
 
 ### Mount limits and sunlight protection
 
-New mounts remember their original rider type even after the rider dies, dismounts, or the world is reloaded.
-These mounts keep counting toward that type's spawn limit while loaded, unless the mount has a custom name.
-Name your pet mount with a name tag to exclude it from the cap; naming only its rider or adding a saddle does not exclude it.
-Removing the mount's custom name makes it count again. This applies to Skeleton Horses, Zombie Horses, and mod Zoglins in both dimensions.
-Horses and Zoglins are never deleted to enforce a cap. Ordinary untagged Zoglins do not consume the mod's cap.
-Limits apply to loaded entities in each dimension, not a global lifetime total across unloaded chunks.
-Vanilla Skeleton Horse traps and all three additional horses are permanently marked. Protection remains after the rider dies. 
+New mounts remember their original rider type even after the rider dies, dismounts, or the world is reloaded. These mounts keep counting toward that type's spawn limit while loaded, unless the mount has a custom name. Name your pet mount with a name tag to exclude it from the cap; naming only its rider or adding a saddle does not exclude it. Removing the mount's custom name makes it count again. This applies to Skeleton Horses, Zombie Horses, and mod Zoglins in both dimensions. Horses and Zoglins are never deleted to enforce a cap. Ordinary untagged Zoglins do not consume the mod's cap.
 
-When saddle protection is enabled, equipping a saddle removes the mod's sunlight fire on the next entity tick, including in shade.
-Overlapping fire from lava, attacks, or other sources keeps its remaining duration.
-Fire-source tracking is saved with the horse.
+Older occupied horses are classified from their current rider when counted. Old riderless horses have no reliable subtype information, so they count against every compatible horse type in that dimension. Limits apply to loaded entities in each dimension, not a global lifetime total across unloaded chunks.
+
+New vanilla Skeleton Horse traps and all three additional horses are permanently marked. Protection remains after the rider dies. Naming an ordinary Skeleton rider does not grant protection. Already-triggered traps from older mod versions cannot be identified reliably; an operator can mark a known old trap horse with `/tag <horse-selector> add undeadriders.vanilla_trap_horse`.
+
+When saddle protection is enabled, equipping a saddle removes the mod's sunlight fire on the next entity tick, including in shade. Overlapping fire from lava, attacks, or other sources keeps its remaining duration. Fire-source tracking is saved with the horse. Fire already present before upgrading has no source information and is conservatively treated as external fire.
 
 ### Open Parties and Claims compatibility
 
@@ -152,6 +151,7 @@ Claims that have hostile natural spawning disabled, for example through OPAC's "
 {
   "zombieHorsemanEnabled": true,   // Enable Zombie Horseman.
   "huskHorsemanEnabled": true,     // Enable Husk Horseman. Desert biomes only.
+  "frostbiteHorsemanEnabled": true, // Enable Frostbite Horseman in cold surface biomes, excluding rivers and oceans.
   "skeletonHorsemanEnabled": true, // Enable Skeleton Horseman.
   "parchedHorsemanEnabled": true,  // Enable Parched Horseman. Desert biomes only.
   "boggedHorsemanEnabled": true,   // Enable Bogged Horseman. Swamp and Mangrove Swamp only.
@@ -163,6 +163,7 @@ Claims that have hostile natural spawning disabled, for example through OPAC's "
 
   "zombieHorsemanSpawnRate": 0.15,   // Zombie Horseman spawn chance per attempt.
   "huskHorsemanSpawnRate": 0.15,     // Husk Horseman spawn chance per attempt.
+  "frostbiteHorsemanSpawnRate": 0.15, // Frostbite Horseman spawn chance per attempt.
   "skeletonHorsemanSpawnRate": 0.1,  // Skeleton Horseman spawn chance per attempt.
   "parchedHorsemanSpawnRate": 0.1,   // Parched Horseman spawn chance per attempt.
   "boggedHorsemanSpawnRate": 0.15,   // Bogged Horseman spawn chance per attempt.
@@ -197,30 +198,15 @@ All commands require **gamemaster** permission (op level 2).
 | `/undeadriders reload` | Reloads the config from disk without a server restart |
 | `/undeadriders info` | Shows enabled/disabled status, spawn rates, and current caps in chat |
 | `/undeadriders count` | Counts loaded mounts in your current dimension, with named pets listed separately |
-| `/undeadriders count <type>` | Counts only `zombie`, `husk`, `skeleton`, `parched`, `bogged`, `stray`, `piglin`, or `nether_skeleton` |
+| `/undeadriders count <type>` | Counts only `zombie`, `husk`, `frostbite`, `skeleton`, `parched`, `bogged`, `stray`, `piglin`, or `nether_skeleton` |
 | `/undeadriders highlight on` | Enables temporary outlines on unnamed mounts found by your subsequent count commands |
 | `/undeadriders highlight off` | Disables highlighting and immediately removes your active markings |
 
-These commands require gamemaster permission, like reload and info.
-Highlighting defaults to off, is personal to each admin, and resets on disconnect or server restart.
-Glowing is visible to all nearby players. Count includes named pets and riderless mounts but excludes vanilla trap horses and unrelated Zoglins.
+These commands require gamemaster permission, like reload and info. Highlighting defaults to off, is personal to each admin, and resets on disconnect or server restart. Glowing is visible to all nearby players. Count includes named pets and riderless mounts but excludes vanilla trap horses and unrelated Zoglins. Legacy horses with an unknown subtype can appear in multiple compatible type rows; the overall total counts each mount only once. Console can count, but the highlight preference requires a player.
 
-Named pets are never highlighted. Naming a highlighted mount removes its marking on the next server tick.
-Markings last 600 server ticks (30 seconds at 20 TPS); repeating count refreshes the duration. 
-Turning highlighting off or disconnecting removes your markings immediately, unless another admin also marked that mount.
-Markings are also cleared when entities unload or the server stops. Existing outlines and Glowing potion effects are preserved.
+Named pets are never highlighted. Naming a highlighted mount removes its marking on the next server tick. Markings last 600 server ticks (30 seconds at 20 TPS); repeating count refreshes the duration. Turning highlighting off or disconnecting removes your markings immediately, unless another admin also marked that mount. Markings are also cleared when entities unload or the server stops. Existing outlines and Glowing potion effects are preserved.
 
-
----
-
-## 🛠️ Technical Details
-
-- **Mod Loader**: [Fabric](https://fabricmc.net/)
-- **Required**: [Fabric API](https://modrinth.com/mod/fabric-api)
-- **Optional (server-side)**: [Open Parties and Claims](https://modrinth.com/mod/open-parties-and-claims)
-- **Optional (client-side)**: [Mod Menu](https://modrinth.com/mod/modmenu), [Cloth Config](https://modrinth.com/mod/cloth-config)
-- **Server-side**: Yes — no client mod required
-- **Single player**: Yes — the mod works in single player worlds
+Command outlines use independent, unsaved state, so clearing them preserves vanilla glow flags set by other sources during a highlight. Older untagged horses carrying a living Parched are recognized during sunlight checks, without waiting for a population scan. Mounts already classified as another rider type do not gain this protection.
 
 ---
 

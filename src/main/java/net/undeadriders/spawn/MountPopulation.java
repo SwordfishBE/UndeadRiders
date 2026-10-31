@@ -10,12 +10,13 @@ import net.minecraft.world.entity.monster.skeleton.Parched;
 import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.entity.monster.skeleton.Stray;
 import net.minecraft.world.entity.monster.zombie.Husk;
+import net.minecraft.world.entity.monster.zombie.Frostbite;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.undeadriders.UndeadRiders;
 
 public final class MountPopulation {
     public enum Type {
-        ZOMBIE, HUSK, SKELETON, PARCHED, BOGGED, STRAY, PIGLIN, NETHER_SKELETON;
+        ZOMBIE, HUSK, FROSTBITE, SKELETON, PARCHED, BOGGED, STRAY, PIGLIN, NETHER_SKELETON;
 
         private final String tag = "undeadriders.mount." + name().toLowerCase(java.util.Locale.ROOT);
         public String tag() { return tag; }
@@ -47,7 +48,7 @@ public final class MountPopulation {
         if (!(mount instanceof ZombieHorse || mount instanceof SkeletonHorse || mount instanceof Zoglin)) return java.util.List.of();
         Type origin = origin(mount, nether);
         if (origin != null) return java.util.List.of(origin);
-        if (mount instanceof ZombieHorse) return java.util.List.of(Type.ZOMBIE, Type.HUSK);
+        if (mount instanceof ZombieHorse) return java.util.List.of(Type.ZOMBIE, Type.HUSK, Type.FROSTBITE);
         if (mount instanceof SkeletonHorse) return java.util.List.of(nether ? NETHER_SKELETON_TYPES : OVERWORLD_SKELETON_TYPES);
         return java.util.List.of();
     }
@@ -64,7 +65,8 @@ public final class MountPopulation {
         Entity rider = mount.getFirstPassenger();
         Type inferred = null;
         if (mount instanceof ZombieHorse) {
-            if (rider instanceof Husk) inferred = Type.HUSK;
+            if (rider instanceof Frostbite) inferred = Type.FROSTBITE;
+            else if (rider instanceof Husk) inferred = Type.HUSK;
             else if (rider instanceof Zombie) inferred = Type.ZOMBIE;
         } else if (mount instanceof SkeletonHorse) {
             if (rider instanceof Bogged) inferred = Type.BOGGED;

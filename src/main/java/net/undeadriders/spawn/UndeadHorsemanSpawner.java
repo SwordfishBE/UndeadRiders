@@ -19,6 +19,7 @@ import net.minecraft.world.entity.monster.skeleton.Parched;
 import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.entity.monster.skeleton.Stray;
 import net.minecraft.world.entity.monster.zombie.Husk;
+import net.minecraft.world.entity.monster.zombie.Frostbite;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.monster.zombie.ZombifiedPiglin;
 import net.minecraft.world.entity.animal.equine.SkeletonHorse;
@@ -50,6 +51,7 @@ import net.undeadriders.spawn.MountPopulation.Type;
  * <ul>
  *   <li><b>Zombie Horseman</b>  — ZombieHorse + Zombie. All biomes except Desert. Night only.</li>
  *   <li><b>Husk Horseman</b>    — ZombieHorse + Husk.   Desert only. Night only.</li>
+ *   <li><b>Frostbite Horseman</b> - ZombieHorse + Frostbite. Cold land biomes, not rivers/oceans.</li>
  *   <li><b>Skeleton Horseman</b>— SkeletonHorse + Skeleton. Non-desert, non-swamp, non-frozen. Night only.</li>
  *   <li><b>Parched Horseman</b> — SkeletonHorse + Parched. Desert only. Day &amp; night.</li>
  *   <li><b>Bogged Horseman</b>  — SkeletonHorse + Bogged.  Swamp &amp; Mangrove Swamp. Night only.</li>
@@ -117,7 +119,7 @@ public class UndeadHorsemanSpawner {
     }
 
     private static boolean hasOverworldSpawnsEnabled(UndeadRidersConfig cfg) {
-        return cfg.zombieHorsemanEnabled || cfg.huskHorsemanEnabled
+        return cfg.zombieHorsemanEnabled || cfg.huskHorsemanEnabled || cfg.frostbiteHorsemanEnabled
             || cfg.skeletonHorsemanEnabled || cfg.parchedHorsemanEnabled
             || cfg.boggedHorsemanEnabled || cfg.strayHorsemanEnabled;
     }
@@ -130,6 +132,7 @@ public class UndeadHorsemanSpawner {
         var population = MountPopulation.count(world.getAllEntities(), false);
         long existingZombie = population.get(Type.ZOMBIE);
         long existingHusk = population.get(Type.HUSK);
+        long existingFrostbite = population.get(Type.FROSTBITE);
         long existingSkeleton = population.get(Type.SKELETON);
         long existingParched = population.get(Type.PARCHED);
         long existingBogged = population.get(Type.BOGGED);
@@ -156,6 +159,12 @@ public class UndeadHorsemanSpawner {
                         && RANDOM.nextFloat() < cfg.skeletonHorsemanSpawnRate) {
                     BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.SKELETON);
                     if (pos != null) { spawnSkeletonHorseman(world, pos); existingSkeleton++; }
+                }
+
+                if (cfg.frostbiteHorsemanEnabled && existingFrostbite < cap
+                        && RANDOM.nextFloat() < cfg.frostbiteHorsemanSpawnRate) {
+                    BlockPos pos = findSurfacePos(world, player, cfg, BiomeFilter.FROSTBITE);
+                    if (pos != null) { spawnFrostbiteHorseman(world, pos); existingFrostbite++; }
                 }
 
                 if (cfg.parchedHorsemanEnabled && existingParched < cap
@@ -206,7 +215,7 @@ public class UndeadHorsemanSpawner {
     // Biome filter
     // ─────────────────────────────────────────────────────────────────────────
 
-    private enum BiomeFilter { ZOMBIE, SKELETON, DESERT, HUSK, SWAMP, FROZEN, NETHER_PIGLIN, NETHER_SKELETON }
+    private enum BiomeFilter { ZOMBIE, SKELETON, DESERT, HUSK, FROSTBITE, SWAMP, FROZEN, NETHER_PIGLIN, NETHER_SKELETON }
 
     private static boolean matchesBiome(ServerLevel world, BlockPos pos, BiomeFilter filter) {
         Holder<Biome> biome = world.getBiome(pos);
@@ -225,6 +234,8 @@ public class UndeadHorsemanSpawner {
                           && !biome.is(Biomes.JAGGED_PEAKS)
                           && !biome.is(Biomes.FROZEN_PEAKS)
                           && !biome.is(Biomes.SNOWY_SLOPES)
+                          && !biome.is(Biomes.SNOWY_TAIGA)
+                          && !biome.is(Biomes.GROVE)
                           && !biome.is(Biomes.FROZEN_OCEAN)
                           && !biome.is(Biomes.DEEP_FROZEN_OCEAN)
                           && !biome.is(Biomes.SNOWY_BEACH)
@@ -232,12 +243,15 @@ public class UndeadHorsemanSpawner {
                           && !biome.is(Biomes.MUSHROOM_FIELDS);
             case DESERT   -> biome.is(Biomes.DESERT) && !biome.is(Biomes.MUSHROOM_FIELDS); // Parched: day & night
             case HUSK     -> biome.is(Biomes.DESERT) && !biome.is(Biomes.MUSHROOM_FIELDS); // Husk: night only
+            case FROSTBITE -> isFrostbiteBiome(biome);
             case SWAMP    -> (biome.is(Biomes.SWAMP) || biome.is(Biomes.MANGROVE_SWAMP)) && !biome.is(Biomes.MUSHROOM_FIELDS);
             case FROZEN   -> biome.is(Biomes.ICE_SPIKES)
                           || biome.is(Biomes.SNOWY_PLAINS)
                           || biome.is(Biomes.JAGGED_PEAKS)
                           || biome.is(Biomes.FROZEN_PEAKS)
                           || biome.is(Biomes.SNOWY_SLOPES)
+                          || biome.is(Biomes.SNOWY_TAIGA)
+                          || biome.is(Biomes.GROVE)
                           || biome.is(Biomes.FROZEN_OCEAN)
                           || biome.is(Biomes.DEEP_FROZEN_OCEAN)
                           || biome.is(Biomes.SNOWY_BEACH);
@@ -247,6 +261,13 @@ public class UndeadHorsemanSpawner {
             case NETHER_SKELETON -> biome.is(Biomes.SOUL_SAND_VALLEY);
             default       -> true;
         };
+    }
+
+    static boolean isFrostbiteBiome(Holder<Biome> biome) {
+        return biome.is(Biomes.ICE_SPIKES) || biome.is(Biomes.SNOWY_PLAINS)
+            || biome.is(Biomes.JAGGED_PEAKS) || biome.is(Biomes.FROZEN_PEAKS)
+            || biome.is(Biomes.SNOWY_SLOPES) || biome.is(Biomes.SNOWY_BEACH)
+            || biome.is(Biomes.SNOWY_TAIGA) || biome.is(Biomes.GROVE);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -390,7 +411,7 @@ public class UndeadHorsemanSpawner {
             pos,
             structure -> structure.is(BuiltinStructures.BASTION_REMNANT)
         );
-        return start.isValid();
+        return start != null;
     }
 
     private static boolean isBlockedByOpenPartiesAndClaims(ServerLevel world, BlockPos pos, UndeadRidersConfig cfg) {
@@ -459,6 +480,33 @@ public class UndeadHorsemanSpawner {
             horse.discard(); husk.discard(); return;
         }
         UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Husk Horseman at {}", pos);
+    }
+
+    private static void spawnFrostbiteHorseman(ServerLevel world, BlockPos pos) {
+        UndeadRidersConfig cfg = UndeadRiders.CONFIG;
+        ZombieHorse horse = EntityTypes.ZOMBIE_HORSE.create(world, EntitySpawnReason.NATURAL);
+        if (horse == null) return;
+        placeHorse(horse, pos, cfg.zombieHorseSaddleChance);
+        horse.addTag(Type.FROSTBITE.tag());
+        horse.setTamed(false);
+        boolean babyVariant = shouldSpawnBabyUndeadRider(cfg);
+        horse.setBaby(babyVariant);
+        applyZombieHorseEquipment(horse, world.getDifficulty(), cfg.zombieHorseArmorChance);
+
+        Frostbite rider = EntityTypes.FROSTBITE.create(world, EntitySpawnReason.NATURAL);
+        if (rider == null) { horse.discard(); return; }
+        rider.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        // Keep native ice-ball equipment, but avoid vanilla chicken jockeys and use our baby chance.
+        rider.finalizeSpawn(world, world.getCurrentDifficultyAt(pos), EntitySpawnReason.NATURAL,
+            new Zombie.ZombieGroupData(false, false));
+        rider.setBaby(babyVariant);
+
+        world.addFreshEntity(horse);
+        world.addFreshEntity(rider);
+        if (!rider.startRiding(horse, true, true)) {
+            horse.discard(); rider.discard(); return;
+        }
+        UndeadRiders.LOGGER.debug("[UndeadRiders] Spawned Frostbite Horseman at {}", pos);
     }
 
     private static void spawnSkeletonHorseman(ServerLevel world, BlockPos pos) {

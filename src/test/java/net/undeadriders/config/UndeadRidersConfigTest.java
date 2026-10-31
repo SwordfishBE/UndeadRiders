@@ -37,9 +37,21 @@ class UndeadRidersConfigTest {
         assertEquals(20, config.spawnCheckIntervalTicks);
         assertTrue(Files.readString(file).contains("\"spawnCheckIntervalTicks\": 20"));
         assertTrue(Files.readString(file).contains("\"babyUndeadRiderChance\""));
+        assertTrue(Files.readString(file).contains("\"frostbiteHorsemanEnabled\": true"));
+        assertTrue(Files.readString(file).contains("\"frostbiteHorsemanSpawnRate\": 0.15"));
         try (var files = Files.list(directory)) {
             assertEquals(1, files.count());
         }
+    }
+
+    @Test
+    void frostbiteSettingsSurviveConfigRewriteAndReload() throws Exception {
+        Path file = directory.resolve("undeadriders.json");
+        Files.writeString(file, "{\"frostbiteHorsemanEnabled\":false,\"frostbiteHorsemanSpawnRate\":0.4}");
+        UndeadRidersConfig.load(file);
+        UndeadRidersConfig reloaded = UndeadRidersConfig.load(file);
+        assertFalse(reloaded.frostbiteHorsemanEnabled);
+        assertEquals(0.4f, reloaded.frostbiteHorsemanSpawnRate);
     }
 
     @Test
@@ -61,11 +73,13 @@ class UndeadRidersConfigTest {
     void invalidProbabilitiesBecomeFiniteAndBounded() {
         UndeadRidersConfig config = new UndeadRidersConfig();
         config.zombieHorsemanSpawnRate = Float.NaN;
+        config.frostbiteHorsemanSpawnRate = Float.NaN;
         config.babyUndeadRiderChance = Float.POSITIVE_INFINITY;
         config.zombieHorseArmorChance = Float.NEGATIVE_INFINITY;
         config.validateForEditing();
 
         assertEquals(0f, config.zombieHorsemanSpawnRate);
+        assertEquals(0f, config.frostbiteHorsemanSpawnRate);
         assertEquals(1f, config.babyUndeadRiderChance);
         assertEquals(0f, config.zombieHorseArmorChance);
         assertDoesNotThrow(() -> new Gson().toJson(config));
@@ -80,6 +94,8 @@ class UndeadRidersConfigTest {
         assertFalse(config.zombieHorsemanEnabled);
         assertEquals(0, config.maxHorsemenPerPlayer);
         assertTrue(config.zombifiedPiglinRiderEnabled);
+        assertTrue(config.frostbiteHorsemanEnabled);
+        assertEquals(0.15f, config.frostbiteHorsemanSpawnRate);
         assertEquals(0.3f, config.zombifiedPiglinRiderSpawnRate);
         assertEquals(24, config.minSpawnDistance);
         assertEquals(64, config.maxSpawnDistance);

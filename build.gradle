@@ -34,6 +34,9 @@ fabricApi {
         if (!(target in ['baseline', 'moonrise', 'async'])) {
             throw new GradleException('Use -Pcompat=baseline, moonrise, or async; never combine Moonrise and Async.')
         }
+        if (target != 'baseline') {
+            throw new GradleException('The pinned Moonrise/Async fixtures target Minecraft 26.3, not this 26.4 snapshot. Use -Pcompat=baseline until matching optimizer builds are validated.')
+        }
         configureTests {
             createSourceSet = true
             modId = 'undeadriders-test'
@@ -88,6 +91,9 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
 	withSourcesJar()
 	sourceCompatibility = JavaVersion.VERSION_25
 	targetCompatibility = JavaVersion.VERSION_25

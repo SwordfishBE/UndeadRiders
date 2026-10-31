@@ -217,11 +217,7 @@ class MountLifecycleTest {
     void countCommandsFilterMountsAndCountLegacyOnlyOnceInTotal() throws Exception {
         var level = mock(ServerLevel.class, RETURNS_DEEP_STUBS);
         when(level.dimension()).thenReturn(Level.OVERWORLD);
-        // This isolated bootstrap has no bound effect-immunity tags.
-        var skeleton = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level) {
-            @Override
-            public boolean canBeAffected(net.minecraft.world.effect.MobEffectInstance effect) { return true; }
-        };
+        var skeleton = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level);
         skeleton.setId(1001);
         skeleton.addTag(Type.SKELETON.tag());
         skeleton.setCustomName(Component.literal("Pet"));
@@ -265,10 +261,7 @@ class MountLifecycleTest {
     @Test
     void highlightsExpireProtectPetsAndPreserveOtherSources() {
         var level = level();
-        var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level) {
-            @Override
-            public boolean canBeAffected(net.minecraft.world.effect.MobEffectInstance effect) { return true; }
-        };
+        var horse = new SkeletonHorse(EntityTypes.SKELETON_HORSE, level);
         var highlights = new net.undeadriders.command.MountHighlights();
         horse.setId(1002);
         var admin = java.util.UUID.randomUUID();
@@ -368,11 +361,28 @@ class MountLifecycleTest {
     }
 
     @Test
+    void frostbiteMountKeepsItsOwnCapIncludingLegacyRidersAndPets() {
+        var level = level();
+        var horse = new ZombieHorse(EntityTypes.ZOMBIE_HORSE, level);
+        var rider = new net.minecraft.world.entity.monster.zombie.Frostbite(EntityTypes.FROSTBITE, level);
+        assertTrue(rider.startRiding(horse, true, true));
+        var counts = MountPopulation.count(List.of(horse), false);
+        assertEquals(1L, counts.get(Type.FROSTBITE));
+        assertEquals(0L, counts.get(Type.ZOMBIE));
+        assertTrue(horse.entityTags().contains(Type.FROSTBITE.tag()));
+        rider.discard();
+        assertEquals(1L, MountPopulation.count(List.of(horse), false).get(Type.FROSTBITE));
+        horse.setCustomName(Component.literal("Pet"));
+        assertEquals(0L, MountPopulation.count(List.of(horse), false).get(Type.FROSTBITE));
+    }
+
+    @Test
     void unclassifiedOldHorsesCountConservatively() {
         var horse = new ZombieHorse(EntityTypes.ZOMBIE_HORSE, level());
         var population = MountPopulation.count(List.of(horse), false);
         assertEquals(1L, population.get(Type.ZOMBIE));
         assertEquals(1L, population.get(Type.HUSK));
+        assertEquals(1L, population.get(Type.FROSTBITE));
     }
 
     @Test

@@ -25,6 +25,7 @@ import static net.minecraft.commands.Commands.literal;
  * <ul>
  *   <li>Zombie Horseman  — ZombieHorse + Zombie. All biomes except Desert.</li>
  *   <li>Husk Horseman    — ZombieHorse + Husk.   Desert only.</li>
+ *   <li>Frostbite Horseman - ZombieHorse + Frostbite. Cold land biomes only.</li>
  *   <li>Skeleton Horseman— SkeletonHorse + Skeleton. All biomes except Desert/Swamp/Frozen.</li>
  *   <li>Parched Horseman — SkeletonHorse + Parched. Desert only.</li>
  *   <li>Bogged Horseman  — SkeletonHorse + Bogged.  Swamp biomes only.</li>
@@ -100,6 +101,7 @@ public class UndeadRiders implements ModInitializer {
                                 "§6=== Undead Riders Info ===\n" +
                                 "§eZombie Horseman  §r" + status(cfg.zombieHorsemanEnabled)   + " §7rate=" + cfg.zombieHorsemanSpawnRate   + "\n" +
                                 "§eHusk Horseman    §r" + status(cfg.huskHorsemanEnabled)     + " §7rate=" + cfg.huskHorsemanSpawnRate     + "\n" +
+                                "§eFrostbite Horseman§r" + status(cfg.frostbiteHorsemanEnabled) + " §7rate=" + cfg.frostbiteHorsemanSpawnRate + "\n" +
                                 "§eSkeleton Horseman§r" + status(cfg.skeletonHorsemanEnabled) + " §7rate=" + cfg.skeletonHorsemanSpawnRate + "\n" +
                                 "§eParched Horseman §r" + status(cfg.parchedHorsemanEnabled)  + " §7rate=" + cfg.parchedHorsemanSpawnRate  + "\n" +
                                 "§eBogged Horseman  §r" + status(cfg.boggedHorsemanEnabled)   + " §7rate=" + cfg.boggedHorsemanSpawnRate   + "\n" +

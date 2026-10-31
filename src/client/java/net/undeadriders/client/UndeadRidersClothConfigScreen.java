@@ -33,6 +33,11 @@ final class UndeadRidersClothConfigScreen {
             .setTooltip(Component.literal("Enable Husk Horseman spawns in desert biomes."))
             .setSaveConsumer(value -> config.huskHorsemanEnabled = value)
             .build());
+        horsemen.addEntry(entries.startBooleanToggle(Component.literal("Frostbite Horseman"), config.frostbiteHorsemanEnabled)
+            .setDefaultValue(true)
+            .setTooltip(Component.literal("Enable Frostbite Horsemen in cold surface biomes, excluding rivers and oceans."))
+            .setSaveConsumer(value -> config.frostbiteHorsemanEnabled = value)
+            .build());
         horsemen.addEntry(entries.startBooleanToggle(Component.literal("Skeleton Horseman"), config.skeletonHorsemanEnabled)
             .setDefaultValue(true)
             .setTooltip(Component.literal("Enable Skeleton Horseman spawns."))
@@ -90,6 +95,13 @@ final class UndeadRidersClothConfigScreen {
             .setMax(1.0f)
             .setTooltip(Component.literal("Spawn chance per attempt for Husk Horsemen."))
             .setSaveConsumer(value -> config.huskHorsemanSpawnRate = value)
+            .build());
+        spawnRates.addEntry(entries.startFloatField(Component.literal("Frostbite Horseman Spawn Rate"), config.frostbiteHorsemanSpawnRate)
+            .setDefaultValue(0.15f)
+            .setMin(0.0f)
+            .setMax(1.0f)
+            .setTooltip(Component.literal("Spawn chance per attempt for Frostbite Horsemen."))
+            .setSaveConsumer(value -> config.frostbiteHorsemanSpawnRate = value)
             .build());
         spawnRates.addEntry(entries.startFloatField(Component.literal("Skeleton Horseman Spawn Rate"), config.skeletonHorsemanSpawnRate)
             .setDefaultValue(0.10f)

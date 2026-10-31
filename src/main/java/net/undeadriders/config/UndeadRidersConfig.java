@@ -23,6 +23,8 @@ public class UndeadRidersConfig {
     // ── Toggles ───────────────────────────────────────────────────────────────
     public boolean zombieHorsemanEnabled   = true;
     public boolean huskHorsemanEnabled     = true;
+    /** Cold surface biomes, excluding rivers and oceans. */
+    public boolean frostbiteHorsemanEnabled = true;
     public boolean skeletonHorsemanEnabled = true;
     /** Desert biomes only. */
     public boolean parchedHorsemanEnabled  = true;
@@ -42,6 +44,7 @@ public class UndeadRidersConfig {
     // ── Spawn rates (0.0 – 1.0) ───────────────────────────────────────────────
     public float zombieHorsemanSpawnRate   = 0.15f;
     public float huskHorsemanSpawnRate     = 0.15f;
+    public float frostbiteHorsemanSpawnRate = 0.15f;
     public float skeletonHorsemanSpawnRate = 0.1f;
     public float parchedHorsemanSpawnRate  = 0.1f;
     public float boggedHorsemanSpawnRate   = 0.15f;
@@ -94,7 +97,7 @@ public class UndeadRidersConfig {
 
     // ── Conditions ────────────────────────────────────────────────────────────
     /**
-     * Zombie/Husk/Skeleton/Bogged/Stray horsemen only spawn at night or during thunderstorms.
+     * Zombie/Husk/Frostbite/Skeleton/Bogged/Stray horsemen only spawn at night or during thunderstorms.
      * Parched horsemen ignore this and can spawn both day and night.
      * Default: true
      */
@@ -186,6 +189,7 @@ public class UndeadRidersConfig {
         appendComment(sb, "Enable or disable each horseman type independently.");
         appendBoolean(sb, "zombieHorsemanEnabled", zombieHorsemanEnabled, "Enable Zombie Horseman.");
         appendBoolean(sb, "huskHorsemanEnabled", huskHorsemanEnabled, "Enable Husk Horseman. Desert biomes only.");
+        appendBoolean(sb, "frostbiteHorsemanEnabled", frostbiteHorsemanEnabled, "Enable Frostbite Horseman in cold surface biomes, excluding rivers and oceans.");
         appendBoolean(sb, "skeletonHorsemanEnabled", skeletonHorsemanEnabled, "Enable Skeleton Horseman.");
         appendBoolean(sb, "parchedHorsemanEnabled", parchedHorsemanEnabled, "Enable Parched Horseman. Desert biomes only.");
         appendBoolean(sb, "boggedHorsemanEnabled", boggedHorsemanEnabled, "Enable Bogged Horseman. Swamp and Mangrove Swamp only.");
@@ -199,6 +203,7 @@ public class UndeadRidersConfig {
         appendComment(sb, "Spawn chance per attempt. Range: 0.0 to 1.0.");
         appendFloat(sb, "zombieHorsemanSpawnRate", zombieHorsemanSpawnRate, "Zombie Horseman spawn chance per attempt.");
         appendFloat(sb, "huskHorsemanSpawnRate", huskHorsemanSpawnRate, "Husk Horseman spawn chance per attempt.");
+        appendFloat(sb, "frostbiteHorsemanSpawnRate", frostbiteHorsemanSpawnRate, "Frostbite Horseman spawn chance per attempt.");
         appendFloat(sb, "skeletonHorsemanSpawnRate", skeletonHorsemanSpawnRate, "Skeleton Horseman spawn chance per attempt.");
         appendFloat(sb, "parchedHorsemanSpawnRate", parchedHorsemanSpawnRate, "Parched Horseman spawn chance per attempt.");
         appendFloat(sb, "boggedHorsemanSpawnRate", boggedHorsemanSpawnRate, "Bogged Horseman spawn chance per attempt.");
@@ -277,6 +282,7 @@ public class UndeadRidersConfig {
     private void validate() {
         zombieHorsemanSpawnRate    = clamp(zombieHorsemanSpawnRate,    0f, 1f);
         huskHorsemanSpawnRate      = clamp(huskHorsemanSpawnRate,      0f, 1f);
+        frostbiteHorsemanSpawnRate = clamp(frostbiteHorsemanSpawnRate, 0f, 1f);
         skeletonHorsemanSpawnRate  = clamp(skeletonHorsemanSpawnRate,  0f, 1f);
         parchedHorsemanSpawnRate   = clamp(parchedHorsemanSpawnRate,   0f, 1f);
         boggedHorsemanSpawnRate    = clamp(boggedHorsemanSpawnRate,    0f, 1f);
